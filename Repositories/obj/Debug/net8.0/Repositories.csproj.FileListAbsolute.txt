@@ -1,0 +1,17 @@
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\bin\Debug\net8.0\Repositories.deps.json
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\bin\Debug\net8.0\Repositories.dll
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\bin\Debug\net8.0\Repositories.pdb
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\bin\Debug\net8.0\BusinessObjects.dll
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\bin\Debug\net8.0\DataAccessObjects.dll
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\bin\Debug\net8.0\BusinessObjects.pdb
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\bin\Debug\net8.0\DataAccessObjects.pdb
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\Repositories.csproj.AssemblyReference.cache
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\Repositories.GeneratedMSBuildEditorConfig.editorconfig
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\Repositories.AssemblyInfoInputs.cache
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\Repositories.AssemblyInfo.cs
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\Repositories.csproj.CoreCompileInputs.cache
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\Reposito.787EC4B2.Up2Date
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\Repositories.dll
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\refint\Repositories.dll
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\Repositories.pdb
+D:\semester 8\Prn232\ProductManagementASPNETCoreMVC\Repositories\obj\Debug\net8.0\ref\Repositories.dll
