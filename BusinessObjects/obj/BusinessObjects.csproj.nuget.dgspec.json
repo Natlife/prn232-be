@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\sem-8\\prn232\\ProductManagementASPNETCoreMVC\\BusinessObjects\\BusinessObjects.csproj": {}
+    "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj": {}
   },
   "projects": {
-    "D:\\sem-8\\prn232\\ProductManagementASPNETCoreMVC\\BusinessObjects\\BusinessObjects.csproj": {
+    "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\sem-8\\prn232\\ProductManagementASPNETCoreMVC\\BusinessObjects\\BusinessObjects.csproj",
+        "projectUniqueName": "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj",
         "projectName": "BusinessObjects",
-        "projectPath": "D:\\sem-8\\prn232\\ProductManagementASPNETCoreMVC\\BusinessObjects\\BusinessObjects.csproj",
-        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
-        "outputPath": "D:\\sem-8\\prn232\\ProductManagementASPNETCoreMVC\\BusinessObjects\\obj\\",
+        "projectPath": "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj",
+        "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
+        "outputPath": "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -91,7 +91,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
