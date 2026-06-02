@@ -56,6 +56,9 @@ namespace DataAccessObjects.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<DateTime?>("CodeExpiryTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
@@ -87,6 +90,9 @@ namespace DataAccessObjects.Migrations
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
+
+                    b.Property<string>("VerificationCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId")
                         .HasName("PK__AppUsers__1788CC4CD3D16938");

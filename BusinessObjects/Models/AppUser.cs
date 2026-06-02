@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BusinessObjects.Models;
@@ -22,6 +22,10 @@ public partial class AppUser
     public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public string? VerificationCode { get; set; }
+
+    public DateTime? CodeExpiryTime { get; set; }
 
     public virtual ICollection<MaintenanceAppointment> MaintenanceAppointments { get; set; } = new List<MaintenanceAppointment>();
 
