@@ -114,6 +114,15 @@ namespace CarSalesManagementSystemAPI.Controllers
                 {
                     return BadRequest(ModelState);
                 }
+
+                var existing = _carService.GetCarById(id);
+                if (existing == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy xe cần cập nhật." });
+                }
+                
+                car.CreatedAt = existing.CreatedAt;
+
                 _carService.UpdateCar(car);
                 return Ok(new { success = true, message = "Cập nhật xe thành công." });
             }

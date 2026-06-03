@@ -68,6 +68,10 @@ namespace CarSalesManagementSystemAPI.Controllers
                 _partService.AddPart(part);
                 return CreatedAtAction(nameof(Get), new { key = part.PartId }, part);
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
@@ -88,8 +92,21 @@ namespace CarSalesManagementSystemAPI.Controllers
                 {
                     return BadRequest(ModelState);
                 }
+
+                var existing = _partService.GetPartById(id);
+                if (existing == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy phụ tùng cần cập nhật." });
+                }
+                
+                part.CreatedAt = existing.CreatedAt;
+
                 _partService.UpdatePart(part);
                 return Ok(new { success = true, message = "Cập nhật phụ tùng thành công." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -110,6 +127,10 @@ namespace CarSalesManagementSystemAPI.Controllers
                 }
                 _partService.DeletePart(id);
                 return Ok(new { success = true, message = "Xóa phụ tùng thành công." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {

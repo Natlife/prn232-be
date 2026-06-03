@@ -57,6 +57,12 @@ namespace CarSalesManagementSystemAPI.Controllers
             {
                 return BadRequest();
             }
+            var existing = _service.GetPackageById(id);
+            if (existing == null)
+            {
+                return NotFound();
+            }
+            package.CreatedAt = existing.CreatedAt;
             _service.UpdatePackage(package);
             return NoContent();
         }

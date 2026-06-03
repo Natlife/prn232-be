@@ -54,7 +54,10 @@ namespace CarSalesManagementSystemAPI
             var partOrders = modelBuilder.EntitySet<BusinessObjects.Models.PartOrder>("PartOrders");
             partOrders.EntityType.HasKey(po => po.OrderId);
 
-            builder.Services.AddControllers()
+            builder.Services.AddControllers(options =>
+            {
+                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            })
                 .AddOData(options => options
                     .Select()
                     .Filter()
