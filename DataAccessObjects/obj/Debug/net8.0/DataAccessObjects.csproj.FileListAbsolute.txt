@@ -31,3 +31,21 @@ D:\semester 8\Prn232\project\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAc
 D:\semester 8\Prn232\project\prn232-be\DataAccessObjects\obj\Debug\net8.0\ref\DataAccessObjects.dll
 D:\semester 8\Prn232\project\prn232-be\DataAccessObjects\bin\Debug\net8.0\DataAccessObjects.runtimeconfig.json
 D:\semester 8\Prn232\project\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.genruntimeconfig.cache
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\bin\Debug\net8.0\DataAccessObjects.deps.json
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\bin\Debug\net8.0\DataAccessObjects.runtimeconfig.json
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\bin\Debug\net8.0\DataAccessObjects.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\bin\Debug\net8.0\DataAccessObjects.pdb
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\bin\Debug\net8.0\BusinessObjects.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\bin\Debug\net8.0\BusinessObjects.pdb
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.csproj.AssemblyReference.cache
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.GeneratedMSBuildEditorConfig.editorconfig
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.AssemblyInfoInputs.cache
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.AssemblyInfo.cs
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.csproj.CoreCompileInputs.cache
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.sourcelink.json
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAcce.79975846.Up2Date
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\refint\DataAccessObjects.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.pdb
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\DataAccessObjects.genruntimeconfig.cache
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\DataAccessObjects\obj\Debug\net8.0\ref\DataAccessObjects.dll

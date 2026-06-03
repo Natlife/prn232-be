@@ -129,6 +129,9 @@
               "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\BusinessObjects\\BusinessObjects.csproj": {
                 "projectPath": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\BusinessObjects\\BusinessObjects.csproj"
               },
+              "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\Repositories\\Repositories.csproj": {
+                "projectPath": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\Repositories\\Repositories.csproj"
+              },
               "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\Services\\Services.csproj": {
                 "projectPath": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\Services\\Services.csproj"
               }
@@ -155,6 +158,10 @@
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[8.0.2, )"
+            },
+            "Microsoft.AspNetCore.OData": {
+              "target": "Package",
+              "version": "[8.2.5, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",

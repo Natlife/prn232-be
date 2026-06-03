@@ -33,3 +33,21 @@ D:\semester 8\Prn232\project\prn232-be\Repositories\obj\Debug\net8.0\Repositorie
 D:\semester 8\Prn232\project\prn232-be\Repositories\obj\Debug\net8.0\refint\Repositories.dll
 D:\semester 8\Prn232\project\prn232-be\Repositories\obj\Debug\net8.0\Repositories.pdb
 D:\semester 8\Prn232\project\prn232-be\Repositories\obj\Debug\net8.0\ref\Repositories.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\bin\Debug\net8.0\Repositories.deps.json
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\bin\Debug\net8.0\Repositories.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\bin\Debug\net8.0\Repositories.pdb
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\bin\Debug\net8.0\BusinessObjects.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\bin\Debug\net8.0\DataAccessObjects.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\bin\Debug\net8.0\BusinessObjects.pdb
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\bin\Debug\net8.0\DataAccessObjects.pdb
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Repositories.csproj.AssemblyReference.cache
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Repositories.GeneratedMSBuildEditorConfig.editorconfig
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Repositories.AssemblyInfoInputs.cache
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Repositories.AssemblyInfo.cs
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Repositories.csproj.CoreCompileInputs.cache
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Repositories.sourcelink.json
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Reposito.787EC4B2.Up2Date
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Repositories.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\refint\Repositories.dll
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\Repositories.pdb
+D:\FPT\SE1904_SU26\PRN232\Final\prn232-be\Repositories\obj\Debug\net8.0\ref\Repositories.dll
