@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Repositories;
 using Services;
 
@@ -19,7 +22,15 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IMaintenanceAppointmentRepository, MaintenanceAppointmentRepository>();
             builder.Services.AddScoped<IMaintenanceAppointmentService, MaintenanceAppointmentService>();
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options => 
+            {
+                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+            });
+            
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -70,7 +81,6 @@ namespace CarSalesManagementSystemAPI
 
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 
