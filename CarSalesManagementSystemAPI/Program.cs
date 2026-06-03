@@ -27,6 +27,11 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<ICarBrandRepository, CarBrandRepository>();
             builder.Services.AddScoped<ICarBrandService, CarBrandService>();
 
+            // Deposit / Purchase flow
+            builder.Services.AddScoped<IPurchaseRequestRepository, PurchaseRequestRepository>();
+            builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
+            builder.Services.AddHostedService<DepositCleanupService>();
+
             var modelBuilder = new ODataConventionModelBuilder();
             var cars = modelBuilder.EntitySet<BusinessObjects.Models.Car>("Cars");
             cars.EntityType.HasKey(c => c.CarId);
