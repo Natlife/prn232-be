@@ -100,8 +100,19 @@ namespace CarSalesManagementSystemAPI.Controllers
         [HttpDelete("{id}")]
         public ActionResult<ApiResponse<string>> Delete(int id)
         {
-            _service.DeletePackage(id);
-            return Ok(new ApiResponse<string>(true, "Xóa thành công"));
+            try
+            {
+                _service.DeletePackage(id);
+                return Ok(new ApiResponse<string>(true, "Xóa thành công"));
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                return BadRequest(new ApiResponse<string>(false, "Không thể xóa gói bảo dưỡng này vì đã có khách hàng đặt lịch. Hãy cân nhắc chuyển trạng thái sang 'Ngừng cung cấp'."));
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(false, $"Lỗi khi xóa: {ex.Message}"));
+            }
         }
     }
 }
