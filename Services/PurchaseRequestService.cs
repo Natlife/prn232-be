@@ -19,8 +19,18 @@ public class PurchaseRequestService : IPurchaseRequestService
         return _repo.CreateDeposit(request);
     }
 
+    public DepositResult CreateBuyout(DepositRequest request)
+    {
+        return _repo.CreateBuyout(request);
+    }
+
     public IEnumerable<PurchaseRequest> GetDepositsByCustomer(int customerId)
     {
         return _repo.GetDepositsByCustomer(customerId);
+    }
+
+    public IEnumerable<PurchaseRequest> GetAllPurchaseRequests()
+    {
+        return _repo.GetAllPurchaseRequests();
     }
 }

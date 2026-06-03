@@ -12,8 +12,18 @@ public class PurchaseRequestRepository : IPurchaseRequestRepository
         return PurchaseRequestDAO.CreateDeposit(request);
     }
 
+    public DepositResult CreateBuyout(DepositRequest request)
+    {
+        return PurchaseRequestDAO.CreateBuyout(request);
+    }
+
     public IEnumerable<PurchaseRequest> GetDepositsByCustomer(int customerId)
     {
         return PurchaseRequestDAO.GetDepositsByCustomer(customerId);
+    }
+
+    public IEnumerable<PurchaseRequest> GetAllPurchaseRequests()
+    {
+        return PurchaseRequestDAO.GetAllPurchaseRequests();
     }
 }

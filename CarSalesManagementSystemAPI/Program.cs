@@ -42,6 +42,9 @@ namespace CarSalesManagementSystemAPI
             var packages = modelBuilder.EntitySet<BusinessObjects.Models.MaintenancePackage>("MaintenancePackages");
             packages.EntityType.HasKey(mp => mp.PackageId);
 
+            var purchaseRequests = modelBuilder.EntitySet<BusinessObjects.Models.PurchaseRequest>("PurchaseRequests");
+            purchaseRequests.EntityType.HasKey(pr => pr.RequestId);
+
             builder.Services.AddControllers()
                 .AddOData(options => options
                     .Select()

@@ -7,5 +7,7 @@ namespace Repositories;
 public interface IPurchaseRequestRepository
 {
     DepositResult CreateDeposit(DepositRequest request);
+    DepositResult CreateBuyout(DepositRequest request);
     IEnumerable<PurchaseRequest> GetDepositsByCustomer(int customerId);
+    IEnumerable<PurchaseRequest> GetAllPurchaseRequests();
 }

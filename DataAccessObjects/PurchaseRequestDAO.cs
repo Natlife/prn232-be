@@ -79,12 +79,82 @@ public static class PurchaseRequestDAO
         }
     }
 
+    public static DepositResult CreateBuyout(DepositRequest req)
+    {
+        using var ctx = new CarShowroomContext();
+        using var transaction = ctx.Database.BeginTransaction();
+        try
+        {
+            var captcha = ctx.DepositCaptchas.SingleOrDefault(c => c.Code == req.CaptchaCode && c.CarId == req.CarId);
+            if (captcha == null)
+                return new DepositResult { Success = false, Message = "Mã xác nhận không tồn tại hoặc không hợp lệ cho xe này." };
+            if (captcha.IsUsed)
+                return new DepositResult { Success = false, Message = "Mã xác nhận này đã được sử dụng." };
+
+            var car = ctx.Cars.SingleOrDefault(c => c.CarId == req.CarId);
+            if (car == null)
+                return new DepositResult { Success = false, Message = "Không tìm thấy xe." };
+            if (car.Status != "Available")
+                return new DepositResult { Success = false, Message = "Xe hiện không có sẵn (đã được đặt cọc hoặc đã bán)." };
+
+            var now = DateTime.Now;
+
+            var request = new PurchaseRequest
+            {
+                CarId = req.CarId,
+                CustomerId = req.CustomerId,
+                CustomerName = req.CustomerName,
+                CustomerPhone = req.CustomerPhone,
+                CustomerEmail = req.CustomerEmail,
+                Status = "Completed",
+                CreatedAt = now,
+                DepositAmount = car.Price,
+                DepositDate = now,
+                DepositExpiry = null,
+                CaptchaCode = req.CaptchaCode,
+                Message = $"Mua đứt xe. Mã xác nhận: {req.CaptchaCode}"
+            };
+            ctx.PurchaseRequests.Add(request);
+
+            car.Status = "Sold";
+
+            captcha.IsUsed = true;
+            captcha.UsedAt = now;
+
+            ctx.SaveChanges();
+            transaction.Commit();
+
+            return new DepositResult
+            {
+                Success = true,
+                Message = "Mua đứt xe thành công!",
+                RequestId = request.RequestId,
+                DepositAmount = car.Price,
+                DepositExpiry = null
+            };
+        }
+        catch (Exception ex)
+        {
+            transaction.Rollback();
+            return new DepositResult { Success = false, Message = $"Lỗi hệ thống: {ex.Message}" };
+        }
+    }
+
     public static IEnumerable<PurchaseRequest> GetDepositsByCustomer(int customerId)
     {
         using var ctx = new CarShowroomContext();
         return ctx.PurchaseRequests
             .Include(p => p.Car)
-            .Where(p => p.CustomerId == customerId && p.DepositExpiry != null)
+            .Where(p => p.CustomerId == customerId)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToList();
+    }
+
+    public static IEnumerable<PurchaseRequest> GetAllPurchaseRequests()
+    {
+        using var ctx = new CarShowroomContext();
+        return ctx.PurchaseRequests
+            .Include(p => p.Car)
             .ToList();
     }
 }
