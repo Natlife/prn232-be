@@ -1,1 +1,49 @@
+# Visual Studio, VS Code, and workspace files
 .vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains IDEs
+.idea/
+*.sln.imb.json
+
+# Build outputs
+[Bb]in/
+[Oo]bj/
+
+# Publish output
+publish/
+target/
+
+# .NET Core / EF Core local files
+.cr/
+*.db
+*.db-shm
+*.db-wal
+
+# Environment and sensitive settings
+appsettings.Development.json
+appsettings.Local.json
+*.secrets.json
+
+# Logs and temporary files
+*.log
+logs/
+TestResults/
+.vshistory/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Node / front-end dependencies
+node_modules/
+.npm/
+.eslintcache
+.stylelintcache
+
+# Optional web build output (uncomment if you build assets locally)
+# wwwroot/dist/
