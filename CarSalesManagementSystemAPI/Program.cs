@@ -37,6 +37,12 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IPartService, PartService>();
             builder.Services.AddScoped<IPartOrderRepository, PartOrderRepository>();
             builder.Services.AddScoped<IPartOrderService, PartOrderService>();
+            // Deposit / Purchase flow
+            builder.Services.AddScoped<IPurchaseRequestRepository, PurchaseRequestRepository>();
+            builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
+            builder.Services.AddScoped<IDepositCaptchaRepository, DepositCaptchaRepository>();
+            builder.Services.AddScoped<IDepositCaptchaService, DepositCaptchaService>();
+            builder.Services.AddHostedService<DepositCleanupService>();
 
             var modelBuilder = new ODataConventionModelBuilder();
             var cars = modelBuilder.EntitySet<BusinessObjects.Models.Car>("Cars");
@@ -56,6 +62,12 @@ namespace CarSalesManagementSystemAPI
 
             var partOrders = modelBuilder.EntitySet<BusinessObjects.Models.PartOrder>("PartOrders");
             partOrders.EntityType.HasKey(po => po.OrderId);
+
+            var purchaseRequests = modelBuilder.EntitySet<BusinessObjects.Models.PurchaseRequest>("PurchaseRequests");
+            purchaseRequests.EntityType.HasKey(pr => pr.RequestId);
+
+            var depositCaptchas = modelBuilder.EntitySet<BusinessObjects.Models.DepositCaptcha>("DepositCaptchas");
+            depositCaptchas.EntityType.HasKey(dc => dc.CaptchaId);
 
             builder.Services.AddControllers(options =>
             {
@@ -122,7 +134,10 @@ namespace CarSalesManagementSystemAPI
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
             app.UseCors("AllowAll");
 
             app.UseAuthentication();

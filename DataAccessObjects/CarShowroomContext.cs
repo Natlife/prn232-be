@@ -40,6 +40,8 @@ public partial class CarShowroomContext : DbContext
 
     public virtual DbSet<PurchaseRequest> PurchaseRequests { get; set; }
 
+    public virtual DbSet<DepositCaptcha> DepositCaptchas { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -510,6 +512,11 @@ public partial class CarShowroomContext : DbContext
                 .HasDefaultValue("Pending");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
+            entity.Property(e => e.DepositAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.DepositDate).HasColumnType("datetime");
+            entity.Property(e => e.DepositExpiry).HasColumnType("datetime");
+            entity.Property(e => e.CaptchaCode).HasMaxLength(20);
+
             entity.HasOne(d => d.Car).WithMany(p => p.PurchaseRequests)
                 .HasForeignKey(d => d.CarId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -519,6 +526,21 @@ public partial class CarShowroomContext : DbContext
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PurchaseRequests_AppUsers");
+        });
+
+        modelBuilder.Entity<DepositCaptcha>(entity =>
+        {
+            entity.HasKey(e => e.CaptchaId);
+            entity.Property(e => e.Code).HasMaxLength(20).IsRequired();
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UsedAt).HasColumnType("datetime");
+            entity.HasOne(e => e.Car)
+                .WithMany()
+                .HasForeignKey(e => e.CarId)
+                .HasConstraintName("FK_DepositCaptchas_Cars");
         });
 
         OnModelCreatingPartial(modelBuilder);
