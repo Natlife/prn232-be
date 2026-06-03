@@ -82,6 +82,20 @@ public partial class CarShowroomContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AppUsers_AppRoles");
+                
+            entity.HasData(
+                new AppUser 
+                { 
+                    UserId = 99, 
+                    FullName = "System Admin", 
+                    Email = "admin@group7.com", 
+                    PasswordHash = "$2a$11$jI66yMj5egkHkF0.UF41C.Wls0ZtKv2WbVNqemyJvJjo7OlT8r.4u", // Admin@123
+                    PhoneNumber = "0987654321",
+                    RoleId = 1, 
+                    IsActive = true,
+                    CreatedAt = new DateTime(2025, 1, 1)
+                }
+            );
         });
 
         modelBuilder.Entity<Car>(entity =>

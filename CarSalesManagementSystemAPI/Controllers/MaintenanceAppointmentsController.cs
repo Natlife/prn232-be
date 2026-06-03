@@ -7,6 +7,12 @@ using Services;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
+    public class UpdateStatusRequest
+    {
+        public string Status { get; set; } = null!;
+        public string? Reason { get; set; }
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     public class MaintenanceAppointmentsController : ControllerBase
@@ -98,9 +104,9 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpPut("{id}/status")]
-        public ActionResult<ApiResponse<string>> UpdateStatus(int id, [FromBody] string status)
+        public ActionResult<ApiResponse<string>> UpdateStatus(int id, [FromBody] UpdateStatusRequest req)
         {
-            _service.UpdateAppointmentStatus(id, status);
+            _service.UpdateAppointmentStatus(id, req.Status, req.Reason);
             return Ok(new ApiResponse<string>(true, "Cập nhật thành công"));
         }
 
