@@ -4,6 +4,7 @@ using DataAccessObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObjects.Migrations
 {
     [DbContext(typeof(CarShowroomContext))]
-    partial class CarShowroomContextModelSnapshot : ModelSnapshot
+    [Migration("20260603121812_MoveSeedToContext")]
+    partial class MoveSeedToContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,32 +118,6 @@ namespace DataAccessObjects.Migrations
                         .IsUnique();
 
                     b.ToTable("AppUsers");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 1,
-                            Address = "Hanoi",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "admin@carshowroom.com",
-                            FullName = "System Admin",
-                            IsActive = true,
-                            PasswordHash = "$2a$11$ivuFcskipHfVJyUk7X7Cy.72DYWJAKQhFt7uaF2kMrwZ/LAHW1cWO",
-                            PhoneNumber = "0987654321",
-                            RoleId = 1
-                        },
-                        new
-                        {
-                            UserId = 2,
-                            Address = "HCM City",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "customer@carshowroom.com",
-                            FullName = "John Customer",
-                            IsActive = true,
-                            PasswordHash = "$2a$11$iR0JU.l1mLeRCyKuClJFxuWqtweaw2kS3oZSRG/lAcD00M603P5Mm",
-                            PhoneNumber = "0123456789",
-                            RoleId = 2
-                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Car", b =>

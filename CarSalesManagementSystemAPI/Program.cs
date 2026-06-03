@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Repositories;
 using Services;
+using Microsoft.AspNetCore.OData;
+using Microsoft.OData.ModelBuilder;
 
 namespace CarSalesManagementSystemAPI
 {
@@ -22,18 +24,62 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IMaintenanceAppointmentRepository, MaintenanceAppointmentRepository>();
             builder.Services.AddScoped<IMaintenanceAppointmentService, MaintenanceAppointmentService>();
 
-            builder.Services.AddControllers(options => 
+            // Car Showroom flow registrations
+            builder.Services.AddScoped<ICarRepository, CarRepository>();
+            builder.Services.AddScoped<ICarService, CarService>();
+            builder.Services.AddScoped<ICarBrandRepository, CarBrandRepository>();
+            builder.Services.AddScoped<ICarBrandService, CarBrandService>();
+
+            // Part flow registrations
+            builder.Services.AddScoped<IPartCategoryRepository, PartCategoryRepository>();
+            builder.Services.AddScoped<IPartCategoryService, PartCategoryService>();
+            builder.Services.AddScoped<IPartRepository, PartRepository>();
+            builder.Services.AddScoped<IPartService, PartService>();
+            builder.Services.AddScoped<IPartOrderRepository, PartOrderRepository>();
+            builder.Services.AddScoped<IPartOrderService, PartOrderService>();
+
+            var modelBuilder = new ODataConventionModelBuilder();
+            var cars = modelBuilder.EntitySet<BusinessObjects.Models.Car>("Cars");
+            cars.EntityType.HasKey(c => c.CarId);
+
+            var carBrands = modelBuilder.EntitySet<BusinessObjects.Models.CarBrand>("CarBrands");
+            carBrands.EntityType.HasKey(cb => cb.BrandId);
+
+            var packages = modelBuilder.EntitySet<BusinessObjects.Models.MaintenancePackage>("MaintenancePackages");
+            packages.EntityType.HasKey(mp => mp.PackageId);
+
+            var parts = modelBuilder.EntitySet<BusinessObjects.Models.Part>("Parts");
+            parts.EntityType.HasKey(p => p.PartId);
+
+            var partCategories = modelBuilder.EntitySet<BusinessObjects.Models.PartCategory>("PartCategories");
+            partCategories.EntityType.HasKey(pc => pc.CategoryId);
+
+            var partOrders = modelBuilder.EntitySet<BusinessObjects.Models.PartOrder>("PartOrders");
+            partOrders.EntityType.HasKey(po => po.OrderId);
+
+            builder.Services.AddControllers(options =>
             {
                 options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
             })
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-            });
-            
+                .AddOData(options => options
+                    .Select()
+                    .Filter()
+                    .OrderBy()
+                    .Expand()
+                    .Count()
+                    .SetMaxTop(100)
+                    .AddRouteComponents("odata", modelBuilder.GetEdmModel())
+                )
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+            });
 
             // JWT Authentication Configuration
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -83,20 +129,6 @@ namespace CarSalesManagementSystemAPI
             app.UseAuthorization();
 
             app.MapControllers();
-
-            // Seed Default Roles
-            using (var scope = app.Services.CreateScope())
-            {
-                var context = new DataAccessObjects.CarShowroomContext();
-                if (!System.Linq.Enumerable.Any(context.AppRoles))
-                {
-                    context.AppRoles.AddRange(
-                        new BusinessObjects.Models.AppRole { RoleName = "Admin" },
-                        new BusinessObjects.Models.AppRole { RoleName = "Customer" }
-                    );
-                    context.SaveChanges();
-                }
-            }
 
             app.Run();
         }
