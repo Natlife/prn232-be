@@ -2,69 +2,63 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Services;
 using BusinessObjects.Common;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Query;
+using System.Linq;
 
-namespace CarSalesManagementSystemAPI.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-[Route("odata/[controller]")]
-public class PurchaseRequestsController : ControllerBase
+namespace CarSalesManagementSystemAPI.Controllers
 {
-    private readonly IPurchaseRequestService _service;
-
-    public PurchaseRequestsController(IPurchaseRequestService service)
+    public class PurchaseRequestsController : ODataController
     {
-        _service = service;
-    }
+        private readonly IPurchaseRequestService _service;
 
-    [HttpPost("deposit")]
-    [Authorize]
-    public IActionResult CreateDeposit([FromBody] DepositRequest request)
-    {
-        if (request == null)
-            return BadRequest("Yêu cầu không hợp lệ.");
-
-        var result = _service.CreateDeposit(request);
-        if (!result.Success)
-            return BadRequest(result);
-
-        return Ok(result);
-    }
-
-    [HttpPost("buyout")]
-    [Authorize]
-    public IActionResult CreateBuyout([FromBody] DepositRequest request)
-    {
-        if (request == null)
-            return BadRequest("Yêu cầu không hợp lệ.");
-
-        var result = _service.CreateBuyout(request);
-        if (!result.Success)
-            return BadRequest(result);
-
-        return Ok(result);
-    }
-
-    [HttpGet("customer/{customerId}")]
-    public IActionResult GetDepositsByCustomer(int customerId)
-    {
-        var deposits = _service.GetDepositsByCustomer(customerId);
-        return Ok(deposits);
-    }
-
-    [HttpGet]
-    [Authorize(Roles = "Admin")]
-    [Microsoft.AspNetCore.OData.Query.EnableQuery]
-    public ActionResult<IQueryable<BusinessObjects.Models.PurchaseRequest>> Get()
-    {
-        try
+        public PurchaseRequestsController(IPurchaseRequestService service)
         {
-            var result = _service.GetAllPurchaseRequests();
-            return Ok(result.AsQueryable());
+            _service = service;
         }
-        catch (System.Exception ex)
+
+        [HttpPost("/odata/PurchaseRequests/deposit")]
+        [Authorize]
+        public IActionResult CreateDeposit([FromBody] DepositRequest request)
         {
-            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            if (request == null)
+                return BadRequest("Yêu cầu không hợp lệ.");
+
+            var result = _service.CreateDeposit(request);
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpPost("/odata/PurchaseRequests/buyout")]
+        [Authorize]
+        public IActionResult CreateBuyout([FromBody] DepositRequest request)
+        {
+            if (request == null)
+                return BadRequest("Yêu cầu không hợp lệ.");
+
+            var result = _service.CreateBuyout(request);
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        [EnableQuery]
+        public ActionResult<IQueryable<BusinessObjects.Models.PurchaseRequest>> Get()
+        {
+            try
+            {
+                var result = _service.GetAllPurchaseRequests();
+                return Ok(result.AsQueryable());
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
         }
     }
 }

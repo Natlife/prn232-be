@@ -4,13 +4,12 @@ using System.Linq;
 using BusinessObjects.Models;
 using Services;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Formatter;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
-    [Route("api/[controller]")]
-    [Route("odata/[controller]")]
-    [ApiController]
-    public class MaintenancePackagesController : ControllerBase
+    public class MaintenancePackagesController : ODataController
     {
         private readonly IMaintenancePackageService _service;
 
@@ -26,15 +25,9 @@ namespace CarSalesManagementSystemAPI.Controllers
             return Ok(_service.GetAllPackages().AsQueryable());
         }
 
-        [HttpGet("available")]
-        public ActionResult<IEnumerable<MaintenancePackage>> GetAvailable()
-        {
-            return Ok(_service.GetAvailablePackages());
-        }
-
-        [HttpGet("{key}")]
+        [HttpGet]
         [EnableQuery]
-        public ActionResult<MaintenancePackage> Get(int key)
+        public ActionResult<MaintenancePackage> Get([FromODataUri] int key)
         {
             var package = _service.GetPackageById(key);
             if (package == null)
@@ -44,17 +37,23 @@ namespace CarSalesManagementSystemAPI.Controllers
             return Ok(package);
         }
 
+        [HttpGet("/odata/MaintenancePackages/available")]
+        public ActionResult<IEnumerable<MaintenancePackage>> GetAvailable()
+        {
+            return Ok(_service.GetAvailablePackages());
+        }
+
         [HttpPost]
         public IActionResult Post([FromBody] MaintenancePackage package)
         {
             _service.AddPackage(package);
-            return CreatedAtAction(nameof(Get), new { id = package.PackageId }, package);
+            return Created(package);
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] MaintenancePackage package)
+        [HttpPut]
+        public IActionResult Put([FromODataUri] int key, [FromBody] MaintenancePackage package)
         {
-            if (id != package.PackageId)
+            if (key != package.PackageId)
             {
                 return BadRequest();
             }
@@ -62,10 +61,10 @@ namespace CarSalesManagementSystemAPI.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        [HttpDelete]
+        public IActionResult Delete([FromODataUri] int key)
         {
-            _service.DeletePackage(id);
+            _service.DeletePackage(key);
             return NoContent();
         }
     }

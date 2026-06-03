@@ -5,13 +5,11 @@ using System.Linq;
 using BusinessObjects.Models;
 using Services;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
-    [Route("api/[controller]")]
-    [Route("odata/[controller]")]
-    [ApiController]
-    public class CarBrandsController : ControllerBase
+    public class CarBrandsController : ODataController
     {
         private readonly ICarBrandService _brandService;
 
@@ -35,7 +33,7 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpGet("{key}")]
+        [HttpGet]
         [EnableQuery]
         public ActionResult<CarBrand> Get(int key)
         {
