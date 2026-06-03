@@ -50,7 +50,7 @@ namespace CarSalesManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public ActionResult<ApiResponse<MaintenancePackageDTO>> Get(int id)
         {
-            var package = _service.GetPackageById(key);
+            var package = _service.GetPackageById(id);
             if (package == null)
             {
                 return NotFound(new ApiResponse<MaintenancePackageDTO>(false, "Không tìm thấy gói bảo dưỡng"));
