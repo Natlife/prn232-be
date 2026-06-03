@@ -59,7 +59,7 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpGet("/odata/MaintenancePackages/available")]
-        public ActionResult<IEnumerable<MaintenancePackage>> GetAvailable()
+        public ActionResult<IEnumerable<MaintenancePackage>> GetAvailableOData()
         {
             return Ok(_service.GetAvailablePackages());
         }

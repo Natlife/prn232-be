@@ -69,7 +69,8 @@ namespace CarSalesManagementSystemAPI
             var depositCaptchas = modelBuilder.EntitySet<BusinessObjects.Models.DepositCaptcha>("DepositCaptchas");
             depositCaptchas.EntityType.HasKey(dc => dc.CaptchaId);
 
-            builder.Services.AddControllers({
+            builder.Services.AddControllers(options =>
+            {
                 options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
             })
                 .AddOData(options => options
