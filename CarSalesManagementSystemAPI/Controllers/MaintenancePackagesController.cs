@@ -4,6 +4,7 @@ using System.Linq;
 using BusinessObjects.Models;
 using BusinessObjects.DTOs;
 using Services;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
@@ -49,7 +50,7 @@ namespace CarSalesManagementSystemAPI.Controllers
         [HttpGet("{id}")]
         public ActionResult<ApiResponse<MaintenancePackageDTO>> Get(int id)
         {
-            var package = _service.GetPackageById(id);
+            var package = _service.GetPackageById(key);
             if (package == null)
             {
                 return NotFound(new ApiResponse<MaintenancePackageDTO>(false, "Không tìm thấy gói bảo dưỡng"));
