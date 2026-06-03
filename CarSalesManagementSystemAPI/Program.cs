@@ -30,6 +30,8 @@ namespace CarSalesManagementSystemAPI
             // Deposit / Purchase flow
             builder.Services.AddScoped<IPurchaseRequestRepository, PurchaseRequestRepository>();
             builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
+            builder.Services.AddScoped<IDepositCaptchaRepository, DepositCaptchaRepository>();
+            builder.Services.AddScoped<IDepositCaptchaService, DepositCaptchaService>();
             builder.Services.AddHostedService<DepositCleanupService>();
 
             var modelBuilder = new ODataConventionModelBuilder();
@@ -44,6 +46,9 @@ namespace CarSalesManagementSystemAPI
 
             var purchaseRequests = modelBuilder.EntitySet<BusinessObjects.Models.PurchaseRequest>("PurchaseRequests");
             purchaseRequests.EntityType.HasKey(pr => pr.RequestId);
+
+            var depositCaptchas = modelBuilder.EntitySet<BusinessObjects.Models.DepositCaptcha>("DepositCaptchas");
+            depositCaptchas.EntityType.HasKey(dc => dc.CaptchaId);
 
             builder.Services.AddControllers()
                 .AddOData(options => options
