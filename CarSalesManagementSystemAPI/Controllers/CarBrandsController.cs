@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BusinessObjects.Models;
 using Services;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
@@ -18,12 +20,13 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<CarBrand>> Get()
+        [EnableQuery]
+        public ActionResult<IQueryable<CarBrand>> Get()
         {
             try
             {
                 var brands = _brandService.GetAllBrands();
-                return Ok(brands);
+                return Ok(brands.AsQueryable());
             }
             catch (Exception ex)
             {
@@ -31,12 +34,13 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<CarBrand> GetById(int id)
+        [HttpGet("{key}")]
+        [EnableQuery]
+        public ActionResult<CarBrand> Get(int key)
         {
             try
             {
-                var brand = _brandService.GetBrandById(id);
+                var brand = _brandService.GetBrandById(key);
                 if (brand == null)
                 {
                     return NotFound(new { message = "Không tìm thấy hãng xe." });

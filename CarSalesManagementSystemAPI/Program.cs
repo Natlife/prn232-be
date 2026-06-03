@@ -1,5 +1,7 @@
 using Repositories;
 using Services;
+using Microsoft.AspNetCore.OData;
+using Microsoft.OData.ModelBuilder;
 
 namespace CarSalesManagementSystemAPI
 {
@@ -25,7 +27,26 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<ICarBrandRepository, CarBrandRepository>();
             builder.Services.AddScoped<ICarBrandService, CarBrandService>();
 
+            var modelBuilder = new ODataConventionModelBuilder();
+            var cars = modelBuilder.EntitySet<BusinessObjects.Models.Car>("Cars");
+            cars.EntityType.HasKey(c => c.CarId);
+
+            var carBrands = modelBuilder.EntitySet<BusinessObjects.Models.CarBrand>("CarBrands");
+            carBrands.EntityType.HasKey(cb => cb.BrandId);
+
+            var packages = modelBuilder.EntitySet<BusinessObjects.Models.MaintenancePackage>("MaintenancePackages");
+            packages.EntityType.HasKey(mp => mp.PackageId);
+
             builder.Services.AddControllers()
+                .AddOData(options => options
+                    .Select()
+                    .Filter()
+                    .OrderBy()
+                    .Expand()
+                    .Count()
+                    .SetMaxTop(100)
+                    .AddRouteComponents("odata", modelBuilder.GetEdmModel())
+                )
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;

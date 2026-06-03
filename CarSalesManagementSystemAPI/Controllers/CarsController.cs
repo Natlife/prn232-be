@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BusinessObjects.Models;
 using BusinessObjects.Common;
 using Services;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
@@ -19,6 +21,40 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpGet]
+        [EnableQuery]
+        public ActionResult<IQueryable<Car>> Get()
+        {
+            try
+            {
+                var cars = _carService.GetAllCars();
+                return Ok(cars.AsQueryable());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        [HttpGet("{key}")]
+        [EnableQuery]
+        public ActionResult<Car> Get(int key)
+        {
+            try
+            {
+                var car = _carService.GetCarById(key);
+                if (car == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy xe yêu cầu." });
+                }
+                return Ok(car);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        [HttpGet("paged")]
         public ActionResult<PagedResult<Car>> GetPaged([FromQuery] CarSearchRequest request)
         {
             try
@@ -46,24 +82,6 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<Car> GetById(int id)
-        {
-            try
-            {
-                var car = _carService.GetCarById(id);
-                if (car == null)
-                {
-                    return NotFound(new { message = "Không tìm thấy xe yêu cầu." });
-                }
-                return Ok(car);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
-            }
-        }
-
         [HttpPost]
         public IActionResult Post([FromBody] Car car)
         {
@@ -75,7 +93,7 @@ namespace CarSalesManagementSystemAPI.Controllers
                 }
                 car.CreatedAt = DateTime.Now;
                 _carService.AddCar(car);
-                return CreatedAtAction(nameof(GetById), new { id = car.CarId }, car);
+                return CreatedAtAction(nameof(Get), new { key = car.CarId }, car);
             }
             catch (Exception ex)
             {

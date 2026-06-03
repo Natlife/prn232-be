@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Linq;
 using BusinessObjects.Models;
 using Services;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
@@ -17,9 +19,10 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<MaintenancePackage>> Get()
+        [EnableQuery]
+        public ActionResult<IQueryable<MaintenancePackage>> Get()
         {
-            return Ok(_service.GetAllPackages());
+            return Ok(_service.GetAllPackages().AsQueryable());
         }
 
         [HttpGet("available")]
@@ -28,10 +31,11 @@ namespace CarSalesManagementSystemAPI.Controllers
             return Ok(_service.GetAvailablePackages());
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<MaintenancePackage> Get(int id)
+        [HttpGet("{key}")]
+        [EnableQuery]
+        public ActionResult<MaintenancePackage> Get(int key)
         {
-            var package = _service.GetPackageById(id);
+            var package = _service.GetPackageById(key);
             if (package == null)
             {
                 return NotFound();
