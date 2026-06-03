@@ -314,6 +314,38 @@ namespace DataAccessObjects.Migrations
                         .HasName("PK__Maintena__322035CCFD54E0FD");
 
                     b.ToTable("MaintenancePackages");
+
+                    b.HasData(
+                        new
+                        {
+                            PackageId = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Kiểm tra toàn diện 30 điểm, thay nhớt động cơ và lọc nhớt, kiểm tra hệ thống phanh và bổ sung nước làm mát. Phù hợp cho bảo dưỡng định kỳ mỗi 5.000 km.",
+                            EstimatedDuration = 120,
+                            PackageName = "Bảo dưỡng Tiêu chuẩn",
+                            Price = 1500000m,
+                            Status = "Available"
+                        },
+                        new
+                        {
+                            PackageId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Kiểm tra hệ thống điện tử bằng máy chuyên dụng, vệ sinh buồng đốt, vệ sinh kim phun, đảo lốp, cân bằng động và thay toàn bộ chất lỏng (dầu máy, dầu phanh, nước làm mát).",
+                            EstimatedDuration = 240,
+                            PackageName = "Bảo dưỡng Toàn diện VIP",
+                            Price = 4500000m,
+                            Status = "Available"
+                        },
+                        new
+                        {
+                            PackageId = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Kiểm tra áp suất lốp, độ mòn lốp, hệ thống chiếu sáng, hệ thống phanh, gạt mưa và bình ắc quy để đảm bảo an toàn tuyệt đối cho chuyến đi dài.",
+                            EstimatedDuration = 60,
+                            PackageName = "Kiểm tra Xe trước Chuyến đi",
+                            Price = 500000m,
+                            Status = "Available"
+                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Part", b =>

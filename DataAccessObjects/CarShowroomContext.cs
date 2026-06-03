@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using BusinessObjects.Models;
 
 namespace DataAccessObjects;
+
 public partial class CarShowroomContext : DbContext
 {
     public CarShowroomContext()
@@ -160,6 +161,39 @@ public partial class CarShowroomContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasDefaultValue("Available");
+
+            entity.HasData(
+                new MaintenancePackage
+                {
+                    PackageId = 1,
+                    PackageName = "Bảo dưỡng Tiêu chuẩn",
+                    Description = "Kiểm tra toàn diện 30 điểm, thay nhớt động cơ và lọc nhớt, kiểm tra hệ thống phanh và bổ sung nước làm mát. Phù hợp cho bảo dưỡng định kỳ mỗi 5.000 km.",
+                    Price = 1500000,
+                    EstimatedDuration = 120,
+                    Status = "Available",
+                    CreatedAt = new DateTime(2025, 1, 1)
+                },
+                new MaintenancePackage
+                {
+                    PackageId = 2,
+                    PackageName = "Bảo dưỡng Toàn diện VIP",
+                    Description = "Kiểm tra hệ thống điện tử bằng máy chuyên dụng, vệ sinh buồng đốt, vệ sinh kim phun, đảo lốp, cân bằng động và thay toàn bộ chất lỏng (dầu máy, dầu phanh, nước làm mát).",
+                    Price = 4500000,
+                    EstimatedDuration = 240,
+                    Status = "Available",
+                    CreatedAt = new DateTime(2025, 1, 1)
+                },
+                new MaintenancePackage
+                {
+                    PackageId = 3,
+                    PackageName = "Kiểm tra Xe trước Chuyến đi",
+                    Description = "Kiểm tra áp suất lốp, độ mòn lốp, hệ thống chiếu sáng, hệ thống phanh, gạt mưa và bình ắc quy để đảm bảo an toàn tuyệt đối cho chuyến đi dài.",
+                    Price = 500000,
+                    EstimatedDuration = 60,
+                    Status = "Available",
+                    CreatedAt = new DateTime(2025, 1, 1)
+                }
+            );
         });
 
         modelBuilder.Entity<Part>(entity =>

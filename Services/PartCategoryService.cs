@@ -1,0 +1,20 @@
+using System.Collections.Generic;
+using BusinessObjects.Models;
+using Repositories;
+
+namespace Services
+{
+    public class PartCategoryService : IPartCategoryService
+    {
+        private readonly IPartCategoryRepository _repository;
+
+        public PartCategoryService(IPartCategoryRepository repository)
+        {
+            _repository = repository;
+        }
+
+        public IEnumerable<PartCategory> GetAllCategories() => _repository.GetAllCategories();
+
+        public PartCategory? GetCategoryById(int id) => _repository.GetCategoryById(id);
+    }
+}

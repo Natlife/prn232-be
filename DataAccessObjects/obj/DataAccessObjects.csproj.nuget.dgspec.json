@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\semester 8\\Prn232\\project\\prn232-be\\DataAccessObjects\\DataAccessObjects.csproj": {}
+    "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\DataAccessObjects\\DataAccessObjects.csproj": {}
   },
   "projects": {
-    "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj": {
+    "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\BusinessObjects\\BusinessObjects.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj",
+        "projectUniqueName": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\BusinessObjects\\BusinessObjects.csproj",
         "projectName": "BusinessObjects",
-        "projectPath": "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj",
-        "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\obj\\",
+        "projectPath": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\BusinessObjects\\BusinessObjects.csproj",
+        "packagesPath": "C:\\Users\\phuon\\.nuget\\packages\\",
+        "outputPath": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\BusinessObjects\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\phuon\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -30,6 +30,7 @@
         },
         "frameworks": {
           "net8.0": {
+            "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {}
           }
@@ -44,10 +45,11 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "10.0.300"
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
             "Microsoft.EntityFrameworkCore": {
@@ -91,24 +93,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\semester 8\\Prn232\\project\\prn232-be\\DataAccessObjects\\DataAccessObjects.csproj": {
+    "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\DataAccessObjects\\DataAccessObjects.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\semester 8\\Prn232\\project\\prn232-be\\DataAccessObjects\\DataAccessObjects.csproj",
+        "projectUniqueName": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\DataAccessObjects\\DataAccessObjects.csproj",
         "projectName": "DataAccessObjects",
-        "projectPath": "D:\\semester 8\\Prn232\\project\\prn232-be\\DataAccessObjects\\DataAccessObjects.csproj",
-        "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "D:\\semester 8\\Prn232\\project\\prn232-be\\DataAccessObjects\\obj\\",
+        "projectPath": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\DataAccessObjects\\DataAccessObjects.csproj",
+        "packagesPath": "C:\\Users\\phuon\\.nuget\\packages\\",
+        "outputPath": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\DataAccessObjects\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\phuon\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -121,10 +123,11 @@
         },
         "frameworks": {
           "net8.0": {
+            "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj": {
-                "projectPath": "D:\\semester 8\\Prn232\\project\\prn232-be\\BusinessObjects\\BusinessObjects.csproj"
+              "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\BusinessObjects\\BusinessObjects.csproj": {
+                "projectPath": "D:\\FPT\\SE1904_SU26\\PRN232\\Final\\prn232-be\\BusinessObjects\\BusinessObjects.csproj"
               }
             }
           }
@@ -139,10 +142,11 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "10.0.300"
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
             "Microsoft.EntityFrameworkCore.Design": {
@@ -176,7 +180,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
