@@ -5,6 +5,7 @@ using BusinessObjects.Common;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.AspNetCore.OData.Query;
 using System.Linq;
+using System.Security.Claims;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
@@ -46,14 +47,28 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [EnableQuery]
         public ActionResult<IQueryable<BusinessObjects.Models.PurchaseRequest>> Get()
         {
             try
             {
-                var result = _service.GetAllPurchaseRequests();
-                return Ok(result.AsQueryable());
+                var query = _service.GetAllPurchaseRequests().AsQueryable();
+
+                if (!User.IsInRole("Admin"))
+                {
+                    var customerIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? User.FindFirst("sub")?.Value;
+
+                    if (string.IsNullOrWhiteSpace(customerIdValue) || !int.TryParse(customerIdValue, out var customerId))
+                    {
+                        return Forbid();
+                    }
+
+                    query = query.Where(r => r.CustomerId == customerId);
+                }
+
+                return Ok(query);
             }
             catch (System.Exception ex)
             {

@@ -55,13 +55,15 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost("/odata/Cars")]
         [Authorize(Roles = "Admin")]
         public IActionResult Post([FromBody] Car car)
         {
             try
             {
-                if (!ModelState.IsValid)
+                ModelState.Remove(nameof(Car.Brand));
+                ModelState.Remove(nameof(Car.PurchaseRequests));
+                if (!ModelState.IsValid || car == null)
                 {
                     return BadRequest(ModelState);
                 }
@@ -75,20 +77,28 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPut("/odata/Cars({key})")]
         [Authorize(Roles = "Admin")]
-        public IActionResult Put([FromODataUri] int key, [FromBody] Car car)
+        public IActionResult Put([FromRoute] int key, [FromBody] Car car)
         {
             try
             {
+                ModelState.Remove(nameof(Car.Brand));
+                ModelState.Remove(nameof(Car.PurchaseRequests));
+                if (!ModelState.IsValid || car == null)
+                {
+                    return BadRequest(ModelState);
+                }
                 if (key != car.CarId)
                 {
                     return BadRequest(new { message = "Mã xe không trùng khớp." });
                 }
-                if (!ModelState.IsValid)
+                var existingCar = _carService.GetCarById(key);
+                if (existingCar == null)
                 {
-                    return BadRequest(ModelState);
+                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y xe cáº§n cáº­p nháº­t." });
                 }
+                car.CreatedAt = existingCar.CreatedAt;
                 _carService.UpdateCar(car);
                 return Ok(new { success = true, message = "Cập nhật xe thành công." });
             }
@@ -98,9 +108,9 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpDelete("/odata/Cars({key})")]
         [Authorize(Roles = "Admin")]
-        public IActionResult Delete([FromODataUri] int key)
+        public IActionResult Delete([FromRoute] int key)
         {
             try
             {
@@ -109,7 +119,9 @@ namespace CarSalesManagementSystemAPI.Controllers
                 {
                     return NotFound(new { message = "Không tìm thấy xe cần xóa." });
                 }
-                _carService.DeleteCar(key);
+                car.Status = "Inactive";
+                car.Brand = null!;
+                _carService.UpdateCar(car);
                 return Ok(new { success = true, message = "Xóa xe thành công." });
             }
             catch (Exception ex)

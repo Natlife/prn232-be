@@ -53,7 +53,7 @@ public class DepositCleanupService : BackgroundService
 
         var expiredDeposits = await dbContext.PurchaseRequests
             .Include(p => p.Car)
-            .Where(p => p.Status == "Deposited" && p.DepositExpiry != null && p.DepositExpiry < now)
+            .Where(p => p.Status == "Pending" && p.DepositExpiry != null && p.DepositExpiry < now)
             .ToListAsync();
 
         if (expiredDeposits.Any())
@@ -65,7 +65,7 @@ public class DepositCleanupService : BackgroundService
                 _logger.LogInformation("Expiring deposit RequestId: {RequestId} for CarId: {CarId} (Expiry was: {Expiry}). Refund forfeited.",
                     deposit.RequestId, deposit.CarId, deposit.DepositExpiry);
 
-                deposit.Status = "DepositExpired";
+                deposit.Status = "Rejected";
                 deposit.UpdatedAt = now;
 
                 if (deposit.Car != null)
