@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.OData.Query;
 namespace CarSalesManagementSystemAPI.Controllers
 {
     [Route("api/[controller]")]
+    [Route("odata/[controller]")]
     [ApiController]
     public class CarBrandsController : ControllerBase
     {

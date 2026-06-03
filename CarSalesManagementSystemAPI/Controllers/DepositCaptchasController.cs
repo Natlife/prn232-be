@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Services;
 using BusinessObjects.Models;
 using System;
@@ -8,7 +9,9 @@ using Microsoft.AspNetCore.OData.Query;
 namespace CarSalesManagementSystemAPI.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
+[Route("odata/[controller]")]
 public class DepositCaptchasController : ControllerBase
 {
     private readonly IDepositCaptchaService _service;

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Services;
 using BusinessObjects.Common;
 
@@ -6,6 +7,7 @@ namespace CarSalesManagementSystemAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Route("odata/[controller]")]
 public class PurchaseRequestsController : ControllerBase
 {
     private readonly IPurchaseRequestService _service;
@@ -16,6 +18,7 @@ public class PurchaseRequestsController : ControllerBase
     }
 
     [HttpPost("deposit")]
+    [Authorize]
     public IActionResult CreateDeposit([FromBody] DepositRequest request)
     {
         if (request == null)
@@ -29,6 +32,7 @@ public class PurchaseRequestsController : ControllerBase
     }
 
     [HttpPost("buyout")]
+    [Authorize]
     public IActionResult CreateBuyout([FromBody] DepositRequest request)
     {
         if (request == null)
@@ -49,6 +53,7 @@ public class PurchaseRequestsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     [Microsoft.AspNetCore.OData.Query.EnableQuery]
     public ActionResult<IQueryable<BusinessObjects.Models.PurchaseRequest>> Get()
     {

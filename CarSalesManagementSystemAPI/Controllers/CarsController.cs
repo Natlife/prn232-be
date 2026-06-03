@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.OData.Query;
 namespace CarSalesManagementSystemAPI.Controllers
 {
     [Route("api/[controller]")]
+    [Route("odata/[controller]")]
     [ApiController]
     public class CarsController : ControllerBase
     {
@@ -83,6 +85,7 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public IActionResult Post([FromBody] Car car)
         {
             try
@@ -102,6 +105,7 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Put(int id, [FromBody] Car car)
         {
             try
@@ -124,6 +128,7 @@ namespace CarSalesManagementSystemAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
             try
