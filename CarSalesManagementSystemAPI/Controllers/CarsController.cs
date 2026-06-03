@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,12 +7,12 @@ using BusinessObjects.Models;
 using BusinessObjects.Common;
 using Services;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Formatter;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CarsController : ControllerBase
+    public class CarsController : ODataController
     {
         private readonly ICarService _carService;
 
@@ -35,9 +36,9 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpGet("{key}")]
+        [HttpGet]
         [EnableQuery]
-        public ActionResult<Car> Get(int key)
+        public ActionResult<Car> Get([FromODataUri] int key)
         {
             try
             {
@@ -54,46 +55,21 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpGet("paged")]
-        public ActionResult<PagedResult<Car>> GetPaged([FromQuery] CarSearchRequest request)
-        {
-            try
-            {
-                var result = _carService.GetPagedCars(request);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
-            }
-        }
-
-        [HttpGet("all")]
-        public ActionResult<IEnumerable<Car>> GetAll()
-        {
-            try
-            {
-                var result = _carService.GetAllCars();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
-            }
-        }
-
-        [HttpPost]
+        [HttpPost("/odata/Cars")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Post([FromBody] Car car)
         {
             try
             {
-                if (!ModelState.IsValid)
+                ModelState.Remove(nameof(Car.Brand));
+                ModelState.Remove(nameof(Car.PurchaseRequests));
+                if (!ModelState.IsValid || car == null)
                 {
                     return BadRequest(ModelState);
                 }
                 car.CreatedAt = DateTime.Now;
                 _carService.AddCar(car);
-                return CreatedAtAction(nameof(Get), new { key = car.CarId }, car);
+                return Created(car);
             }
             catch (Exception ex)
             {
@@ -101,28 +77,28 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Car car)
+        [HttpPut("/odata/Cars({key})")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Put([FromRoute] int key, [FromBody] Car car)
         {
             try
             {
-                if (id != car.CarId)
-                {
-                    return BadRequest(new { message = "Mã xe không trùng khớp." });
-                }
-                if (!ModelState.IsValid)
+                ModelState.Remove(nameof(Car.Brand));
+                ModelState.Remove(nameof(Car.PurchaseRequests));
+                if (!ModelState.IsValid || car == null)
                 {
                     return BadRequest(ModelState);
                 }
-
-                var existing = _carService.GetCarById(id);
-                if (existing == null)
+                if (key != car.CarId)
                 {
-                    return NotFound(new { message = "Không tìm thấy xe cần cập nhật." });
+                    return BadRequest(new { message = "Mã xe không trùng khớp." });
                 }
-                
-                car.CreatedAt = existing.CreatedAt;
-
+                var existingCar = _carService.GetCarById(key);
+                if (existingCar == null)
+                {
+                    return NotFound(new { message = "Không thấy xe cần cập nhật" });
+                }
+                car.CreatedAt = existingCar.CreatedAt;
                 _carService.UpdateCar(car);
                 return Ok(new { success = true, message = "Cập nhật xe thành công." });
             }
@@ -132,17 +108,20 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        [HttpDelete("/odata/Cars({key})")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Delete([FromRoute] int key)
         {
             try
             {
-                var car = _carService.GetCarById(id);
+                var car = _carService.GetCarById(key);
                 if (car == null)
                 {
                     return NotFound(new { message = "Không tìm thấy xe cần xóa." });
                 }
-                _carService.DeleteCar(id);
+                car.Status = "Inactive";
+                car.Brand = null!;
+                _carService.UpdateCar(car);
                 return Ok(new { success = true, message = "Xóa xe thành công." });
             }
             catch (Exception ex)
