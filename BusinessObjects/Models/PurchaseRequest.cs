@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BusinessObjects.Models;
@@ -19,11 +19,17 @@ public partial class PurchaseRequest
 
     public string? Message { get; set; }
 
+    ///Pending | Deposited | Confirmed | Rejected | Completed | DepositExpired
     public string Status { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public decimal? DepositAmount { get; set; }
+    public DateTime? DepositDate { get; set; }
+    public DateTime? DepositExpiry { get; set; }
+    public string? CaptchaCode { get; set; }
 
     public virtual Car Car { get; set; } = null!;
 

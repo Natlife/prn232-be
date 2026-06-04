@@ -4,12 +4,13 @@ using System.Linq;
 using BusinessObjects.Models;
 using BusinessObjects.DTOs;
 using Services;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Formatter;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class MaintenancePackagesController : ControllerBase
+    public class MaintenancePackagesController : ODataController
     {
         private readonly IMaintenancePackageService _service;
 
@@ -55,6 +56,12 @@ namespace CarSalesManagementSystemAPI.Controllers
                 return NotFound(new ApiResponse<MaintenancePackageDTO>(false, "Không tìm thấy gói bảo dưỡng"));
             }
             return Ok(new ApiResponse<MaintenancePackageDTO>(true, "Lấy chi tiết thành công", MapToDTO(package)));
+        }
+
+        [HttpGet("/odata/MaintenancePackages/available")]
+        public ActionResult<IEnumerable<MaintenancePackage>> GetAvailableOData()
+        {
+            return Ok(_service.GetAvailablePackages());
         }
 
         [HttpPost]
