@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.OData.Formatter;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
+    [Route("api/[controller]")]
     public class MaintenancePackagesController : ODataController
     {
         private readonly IMaintenancePackageService _service;
@@ -76,7 +77,8 @@ namespace CarSalesManagementSystemAPI.Controllers
                 Description = dto.Description,
                 Price = dto.Price,
                 EstimatedDuration = dto.EstimatedDuration,
-                Status = dto.Status ?? "Available"
+                Status = dto.Status ?? "Available",
+                CreatedAt = System.DateTime.Now
             };
 
             _service.AddPackage(package);
