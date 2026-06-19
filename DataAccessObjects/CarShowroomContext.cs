@@ -465,7 +465,9 @@ public partial class CarShowroomContext : DbContext
             entity.Property(e => e.CustomerEmail).HasMaxLength(100);
             entity.Property(e => e.CustomerName).HasMaxLength(100);
             entity.Property(e => e.CustomerPhone).HasMaxLength(20);
-            entity.Property(e => e.ShippingAddress).HasMaxLength(255);
+            entity.Property(e => e.ShippingAddress).HasMaxLength(255).IsRequired(false);
+            entity.Property(e => e.DeliveryMethod).HasMaxLength(50).HasDefaultValue("Pickup");
+            entity.Property(e => e.ShippingFee).HasColumnType("decimal(18, 2)").HasDefaultValue(0);
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasDefaultValue("Pending");

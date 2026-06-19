@@ -25,6 +25,25 @@ namespace Services
 
         public void AddOrder(PartOrder order)
         {
+            // Validate delivery method and address
+            if (string.IsNullOrEmpty(order.DeliveryMethod))
+            {
+                order.DeliveryMethod = "Pickup";
+            }
+
+            if (order.DeliveryMethod == "HomeDelivery" && string.IsNullOrWhiteSpace(order.ShippingAddress))
+            {
+                throw new InvalidOperationException("Địa chỉ giao hàng là bắt buộc khi chọn phương thức Giao hàng tận nơi.");
+            }
+
+            // Set shipping fee dynamically based on delivery method
+            order.ShippingFee = order.DeliveryMethod switch
+            {
+                "HomeDelivery" => 30000m,
+                "GarageInstallation" => 50000m,
+                _ => 0m
+            };
+
             using var context = new CarShowroomContext();
             using var transaction = context.Database.BeginTransaction();
             try
@@ -60,7 +79,7 @@ namespace Services
                     context.Entry(part).State = EntityState.Modified;
                 }
 
-                order.TotalAmount = total;
+                order.TotalAmount = total + order.ShippingFee;
                 order.CreatedAt = DateTime.Now;
                 order.Status = "Pending";
 
@@ -113,10 +132,13 @@ namespace Services
                 // Update properties
                 dbOrder.Status = order.Status;
                 dbOrder.UpdatedAt = DateTime.Now;
+                if (dbOrder.Status != null) dbOrder.Status = order.Status;
                 if (order.CustomerName != null) dbOrder.CustomerName = order.CustomerName;
                 if (order.CustomerPhone != null) dbOrder.CustomerPhone = order.CustomerPhone;
                 if (order.CustomerEmail != null) dbOrder.CustomerEmail = order.CustomerEmail;
                 if (order.ShippingAddress != null) dbOrder.ShippingAddress = order.ShippingAddress;
+                if (order.DeliveryMethod != null) dbOrder.DeliveryMethod = order.DeliveryMethod;
+                if (order.ShippingFee != 0) dbOrder.ShippingFee = order.ShippingFee;
 
                 context.SaveChanges();
                 transaction.Commit();

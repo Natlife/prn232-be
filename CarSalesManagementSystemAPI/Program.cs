@@ -5,6 +5,7 @@ using Repositories;
 using Services;
 using Microsoft.AspNetCore.OData;
 using Microsoft.OData.ModelBuilder;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSalesManagementSystemAPI
 {
@@ -126,6 +127,82 @@ namespace CarSalesManagementSystemAPI
             });
 
             var app = builder.Build();
+
+            // Automatically apply EF migrations and custom schemas on startup
+            using (var scope = app.Services.CreateScope())
+            {
+                try
+                {
+                    System.Console.WriteLine("Applying Entity Framework Migrations...");
+                    using var context = new DataAccessObjects.CarShowroomContext();
+                    context.Database.Migrate();
+                    System.Console.WriteLine("EF Migrations applied successfully.");
+
+                    // Check and apply custom deposit flow schema adjustments
+                    var tableExists = false;
+                    try
+                    {
+                        context.Database.ExecuteSqlRaw("SELECT TOP 1 1 FROM DepositCaptchas");
+                        tableExists = true;
+                    }
+                    catch
+                    {
+                        // Table doesn't exist
+                    }
+
+                    if (!tableExists)
+                    {
+                        System.Console.WriteLine("Applying custom deposit migration schema...");
+                        context.Database.ExecuteSqlRaw(@"
+                            ALTER TABLE PurchaseRequests
+                                ADD DepositAmount   DECIMAL(18,2)  NULL,
+                                    DepositDate     DATETIME       NULL,
+                                    DepositExpiry   DATETIME       NULL,
+                                    CaptchaCode     NVARCHAR(20)   NULL;
+                        ");
+
+                        context.Database.ExecuteSqlRaw(@"
+                            CREATE TABLE DepositCaptchas (
+                                CaptchaId   INT IDENTITY(1,1) PRIMARY KEY,
+                                Code        NVARCHAR(20) NOT NULL UNIQUE,
+                                CarId       INT NOT NULL,
+                                IsUsed      BIT NOT NULL DEFAULT 0,
+                                CreatedAt   DATETIME NOT NULL DEFAULT GETDATE(),
+                                UsedAt      DATETIME NULL,
+                                CONSTRAINT FK_DepositCaptchas_Cars FOREIGN KEY (CarId) REFERENCES Cars(CarId)
+                            );
+                        ");
+                        System.Console.WriteLine("Custom deposit migration schema applied successfully.");
+                    }
+
+                    // Check and apply custom delivery management schema adjustments
+                    try
+                    {
+                        System.Console.WriteLine("Checking delivery schema columns in PartOrders...");
+                        context.Database.ExecuteSqlRaw(@"
+                            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('PartOrders') AND name = 'DeliveryMethod')
+                            BEGIN
+                                ALTER TABLE PartOrders
+                                    ADD DeliveryMethod   NVARCHAR(50)   NOT NULL DEFAULT 'Pickup',
+                                        ShippingFee      DECIMAL(18,2)  NOT NULL DEFAULT 0;
+                            END
+                        ");
+                        context.Database.ExecuteSqlRaw(@"
+                            ALTER TABLE PartOrders
+                                ALTER COLUMN ShippingAddress NVARCHAR(255) NULL;
+                        ");
+                        System.Console.WriteLine("Delivery schema check completed.");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        System.Console.WriteLine($"Error modifying PartOrders schema: {ex.Message}");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    System.Console.WriteLine($"Error running migrations: {ex.Message}");
+                }
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BusinessObjects.Models;
@@ -15,7 +15,11 @@ public partial class PartOrder
 
     public string? CustomerEmail { get; set; }
 
-    public string ShippingAddress { get; set; } = null!;
+    public string? ShippingAddress { get; set; }
+
+    public string DeliveryMethod { get; set; } = "Pickup";
+
+    public decimal ShippingFee { get; set; }
 
     public decimal TotalAmount { get; set; }
 
