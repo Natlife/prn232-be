@@ -25,9 +25,19 @@ appsettings.Local.json
 *.db-shm
 *.db-wal
 
+appsettings.Development.json
+appsettings.Local.json
+*.secrets.json
+
 *.log
 logs/
 TestResults/
+.vshistory/
 
 .DS_Store
 Thumbs.db
+
+node_modules/
+.npm/
+.eslintcache
+.stylelintcache

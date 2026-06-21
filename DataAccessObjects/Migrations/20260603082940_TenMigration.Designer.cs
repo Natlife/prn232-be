@@ -4,6 +4,7 @@ using DataAccessObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObjects.Migrations
 {
     [DbContext(typeof(CarShowroomContext))]
-    partial class CarShowroomContextModelSnapshot : ModelSnapshot
+    [Migration("20260603082940_TenMigration")]
+    partial class TenMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,18 +45,6 @@ namespace DataAccessObjects.Migrations
                         .IsUnique();
 
                     b.ToTable("AppRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            RoleId = 1,
-                            RoleName = "Admin"
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            RoleName = "Customer"
-                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.AppUser", b =>
@@ -115,32 +106,6 @@ namespace DataAccessObjects.Migrations
                         .IsUnique();
 
                     b.ToTable("AppUsers");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 1,
-                            Address = "Hanoi",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "admin@carshowroom.com",
-                            FullName = "System Admin",
-                            IsActive = true,
-                            PasswordHash = "$2a$11$ivuFcskipHfVJyUk7X7Cy.72DYWJAKQhFt7uaF2kMrwZ/LAHW1cWO",
-                            PhoneNumber = "0987654321",
-                            RoleId = 1
-                        },
-                        new
-                        {
-                            UserId = 2,
-                            Address = "HCM City",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "customer@carshowroom.com",
-                            FullName = "John Customer",
-                            IsActive = true,
-                            PasswordHash = "$2a$11$iR0JU.l1mLeRCyKuClJFxuWqtweaw2kS3oZSRG/lAcD00M603P5Mm",
-                            PhoneNumber = "0123456789",
-                            RoleId = 2
-                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Car", b =>
@@ -212,110 +177,6 @@ namespace DataAccessObjects.Migrations
                     b.HasIndex("BrandId");
 
                     b.ToTable("Cars");
-
-                    b.HasData(
-                        new
-                        {
-                            CarId = 1,
-                            BrandId = 1,
-                            CarName = "Toyota Camry 2.5Q",
-                            Color = "Black",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Xe sang trọng, lịch lãm, gia đình sử dụng kỹ, bảo dưỡng chính hãng.",
-                            FuelType = "Gasoline",
-                            ImageUrl = "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=600&q=80",
-                            Mileage = 15000,
-                            Model = "Camry",
-                            Price = 1350000000m,
-                            Status = "Available",
-                            Transmission = "Automatic",
-                            Year = 2022
-                        },
-                        new
-                        {
-                            CarId = 2,
-                            BrandId = 1,
-                            CarName = "Toyota Vios 1.5G",
-                            Color = "White",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Xe quốc dân tiết kiệm nhiên liệu, vận hành bền bỉ.",
-                            FuelType = "Gasoline",
-                            ImageUrl = "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=600&q=80",
-                            Mileage = 28000,
-                            Model = "Vios",
-                            Price = 520000000m,
-                            Status = "Available",
-                            Transmission = "Automatic",
-                            Year = 2021
-                        },
-                        new
-                        {
-                            CarId = 3,
-                            BrandId = 2,
-                            CarName = "Ford Ranger Wildtrak 2.0L",
-                            Color = "Orange",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Vua bán tải, phiên bản cao cấp nhất Wildtrak 2 cầu, đầy đủ công nghệ.",
-                            FuelType = "Diesel",
-                            ImageUrl = "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=600&q=80",
-                            Mileage = 8000,
-                            Model = "Ranger",
-                            Price = 960000000m,
-                            Status = "Available",
-                            Transmission = "Automatic",
-                            Year = 2023
-                        },
-                        new
-                        {
-                            CarId = 4,
-                            BrandId = 3,
-                            CarName = "VinFast VF8 Plus",
-                            Color = "Blue",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Xe điện thông minh Việt Nam, bản Plus pin SDI, công nghệ ADAS hiện đại.",
-                            FuelType = "Electric",
-                            ImageUrl = "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=600&q=80",
-                            Mileage = 5000,
-                            Model = "VF8",
-                            Price = 1100000000m,
-                            Status = "Available",
-                            Transmission = "Automatic",
-                            Year = 2023
-                        },
-                        new
-                        {
-                            CarId = 5,
-                            BrandId = 4,
-                            CarName = "BMW 320i Sport Line",
-                            Color = "Red",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Dòng sedan thể thao lái cực hay, ngoại hình trẻ trung năng động.",
-                            FuelType = "Gasoline",
-                            ImageUrl = "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80",
-                            Mileage = 35000,
-                            Model = "3 Series",
-                            Price = 1250000000m,
-                            Status = "Available",
-                            Transmission = "Automatic",
-                            Year = 2020
-                        },
-                        new
-                        {
-                            CarId = 6,
-                            BrandId = 3,
-                            CarName = "VinFast VF5 Plus",
-                            Color = "Gray",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Xe đô thị cỡ nhỏ thông minh, cực kỳ tiết kiệm và nhỏ gọn.",
-                            FuelType = "Electric",
-                            ImageUrl = "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=600&q=80",
-                            Mileage = 2000,
-                            Model = "VF5",
-                            Price = 450000000m,
-                            Status = "Available",
-                            Transmission = "Automatic",
-                            Year = 2023
-                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.CarBrand", b =>
@@ -343,36 +204,6 @@ namespace DataAccessObjects.Migrations
                         .HasName("PK__CarBrand__DAD4F05EFE11BDE9");
 
                     b.ToTable("CarBrands");
-
-                    b.HasData(
-                        new
-                        {
-                            BrandId = 1,
-                            BrandName = "Toyota",
-                            Country = "Japan",
-                            Description = "Toyota Motor Corporation"
-                        },
-                        new
-                        {
-                            BrandId = 2,
-                            BrandName = "Ford",
-                            Country = "USA",
-                            Description = "Ford Motor Company"
-                        },
-                        new
-                        {
-                            BrandId = 3,
-                            BrandName = "VinFast",
-                            Country = "Vietnam",
-                            Description = "VinFast Vietnam"
-                        },
-                        new
-                        {
-                            BrandId = 4,
-                            BrandName = "BMW",
-                            Country = "Germany",
-                            Description = "Bayerische Motoren Werke AG"
-                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.MaintenanceAppointment", b =>
@@ -580,78 +411,6 @@ namespace DataAccessObjects.Migrations
                         .IsUnique();
 
                     b.ToTable("Parts");
-
-                    b.HasData(
-                        new
-                        {
-                            PartId = 1,
-                            Brand = "Michelin",
-                            CategoryId = 4,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Lốp hiệu năng cao, bám đường cực tốt trong mọi điều kiện thời tiết.",
-                            ImageUrl = "https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=600&q=80",
-                            PartCode = "PT-MIC-PS4",
-                            PartName = "Lốp xe Michelin Pilot Sport 4",
-                            Price = 3200000m,
-                            Quantity = 40,
-                            Status = "Available"
-                        },
-                        new
-                        {
-                            PartId = 2,
-                            Brand = "GS Battery",
-                            CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Ắc quy khô miễn bảo dưỡng, độ bền cao, khởi động mạnh mẽ.",
-                            ImageUrl = "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=600&q=80",
-                            PartCode = "PT-GS-12V45",
-                            PartName = "Ắc quy GS 12V 45Ah",
-                            Price = 1450000m,
-                            Quantity = 25,
-                            Status = "Available"
-                        },
-                        new
-                        {
-                            PartId = 3,
-                            Brand = "Castrol",
-                            CategoryId = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Dầu nhớt công nghệ tổng hợp hoàn toàn bảo vệ động cơ ngay khi khởi động.",
-                            ImageUrl = "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=600&q=80",
-                            PartCode = "PT-CAS-5W30",
-                            PartName = "Dầu nhớt Castrol Magnatec 5W-30",
-                            Price = 850000m,
-                            Quantity = 50,
-                            Status = "Available"
-                        },
-                        new
-                        {
-                            PartId = 4,
-                            Brand = "Bosch",
-                            CategoryId = 4,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Gạt mưa cao cấp từ Bosch Đức, gạt sạch nước nhẹ nhàng, êm ái.",
-                            ImageUrl = "https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?auto=format&fit=crop&w=600&q=80",
-                            PartCode = "PT-BOS-AERO",
-                            PartName = "Gạt mưa Bosch Aerotwin",
-                            Price = 450000m,
-                            Quantity = 60,
-                            Status = "Available"
-                        },
-                        new
-                        {
-                            PartId = 5,
-                            Brand = "Philips",
-                            CategoryId = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Bóng đèn LED H7 siêu sáng, gom sáng tốt, độ bền lên đến 5 năm.",
-                            ImageUrl = "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=600&q=80",
-                            PartCode = "PT-PHI-LEDH7",
-                            PartName = "Đèn pha LED Philips Ultinon Essential",
-                            Price = 1200000m,
-                            Quantity = 15,
-                            Status = "Available"
-                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.PartCategory", b =>
@@ -675,32 +434,6 @@ namespace DataAccessObjects.Migrations
                         .HasName("PK__PartCate__19093A0B38EB3018");
 
                     b.ToTable("PartCategories");
-
-                    b.HasData(
-                        new
-                        {
-                            CategoryId = 1,
-                            CategoryName = "Động cơ & Truyền động",
-                            Description = "Các bộ phận liên quan đến động cơ, hộp số và truyền động."
-                        },
-                        new
-                        {
-                            CategoryId = 2,
-                            CategoryName = "Hệ thống điện & Ắc quy",
-                            Description = "Ắc quy, máy phát điện, đèn và hệ thống điện."
-                        },
-                        new
-                        {
-                            CategoryId = 3,
-                            CategoryName = "Dầu nhớt & Hóa chất",
-                            Description = "Dầu máy, nước làm mát, dầu phanh và hóa chất bảo dưỡng."
-                        },
-                        new
-                        {
-                            CategoryId = 4,
-                            CategoryName = "Ngoại thất & Phụ kiện",
-                            Description = "Lốp xe, gạt mưa, gương và các phụ kiện trang trí ngoại thất."
-                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.PartOrder", b =>

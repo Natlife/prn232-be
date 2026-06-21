@@ -25,12 +25,20 @@ namespace Services
             _repository.AddAppointment(appointment);
         }
 
-        public void UpdateAppointmentStatus(int appointmentId, string status)
+        public void UpdateAppointmentStatus(int appointmentId, string status, string? reason = null)
         {
             var appointment = _repository.GetAppointmentById(appointmentId);
             if (appointment != null)
             {
                 appointment.Status = status;
+                
+                if (!string.IsNullOrEmpty(reason) && status == "Cancelled")
+                {
+                    appointment.Note = string.IsNullOrEmpty(appointment.Note) 
+                        ? $"[Lý do hủy: {reason}]" 
+                        : $"{appointment.Note}\n[Lý do hủy: {reason}]";
+                }
+                
                 _repository.UpdateAppointment(appointment);
             }
         }

@@ -1,10 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Linq;
 using BusinessObjects.Models;
+using BusinessObjects.DTOs;
 using Services;
 
 namespace CarSalesManagementSystemAPI.Controllers
 {
+    public class UpdateStatusRequest
+    {
+        public string Status { get; set; } = null!;
+        public string? Reason { get; set; }
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     public class MaintenanceAppointmentsController : ControllerBase
@@ -16,48 +24,97 @@ namespace CarSalesManagementSystemAPI.Controllers
             _service = service;
         }
 
-        [HttpGet]
-        public ActionResult<IEnumerable<MaintenanceAppointment>> Get()
+        private MaintenanceAppointmentDTO MapToDTO(MaintenanceAppointment a)
         {
-            return Ok(_service.GetAllAppointments());
+            return new MaintenanceAppointmentDTO 
+            {
+                AppointmentId = a.AppointmentId,
+                CustomerId = a.CustomerId,
+                PackageId = a.PackageId,
+                CustomerName = a.CustomerName,
+                CustomerPhone = a.CustomerPhone,
+                CustomerEmail = a.CustomerEmail,
+                CarName = a.CarName,
+                LicensePlate = a.LicensePlate,
+                AppointmentDate = a.AppointmentDate,
+                AppointmentTime = a.AppointmentTime,
+                Note = a.Note,
+                Status = a.Status,
+                CreatedAt = a.CreatedAt,
+                Package = a.Package != null ? new MaintenancePackageDTO 
+                {
+                    PackageId = a.Package.PackageId,
+                    PackageName = a.Package.PackageName,
+                    Description = a.Package.Description,
+                    Price = a.Package.Price,
+                    EstimatedDuration = a.Package.EstimatedDuration,
+                    Status = a.Package.Status
+                } : null
+            };
+        }
+
+        [HttpGet]
+        public ActionResult<ApiResponse<IEnumerable<MaintenanceAppointmentDTO>>> Get()
+        {
+            var data = _service.GetAllAppointments().Select(MapToDTO).ToList();
+            return Ok(new ApiResponse<IEnumerable<MaintenanceAppointmentDTO>>(true, "Success", data));
         }
 
         [HttpGet("customer/{customerId}")]
-        public ActionResult<IEnumerable<MaintenanceAppointment>> GetByCustomer(int customerId)
+        public ActionResult<ApiResponse<IEnumerable<MaintenanceAppointmentDTO>>> GetByCustomer(int customerId)
         {
-            return Ok(_service.GetAppointmentsByCustomerId(customerId));
+            var data = _service.GetAppointmentsByCustomerId(customerId).Select(MapToDTO).ToList();
+            return Ok(new ApiResponse<IEnumerable<MaintenanceAppointmentDTO>>(true, "Success", data));
         }
 
         [HttpGet("{id}")]
-        public ActionResult<MaintenanceAppointment> Get(int id)
+        public ActionResult<ApiResponse<MaintenanceAppointmentDTO>> Get(int id)
         {
             var appointment = _service.GetAppointmentById(id);
             if (appointment == null)
             {
-                return NotFound();
+                return NotFound(new ApiResponse<MaintenanceAppointmentDTO>(false, "Không tìm thấy"));
             }
-            return Ok(appointment);
+            return Ok(new ApiResponse<MaintenanceAppointmentDTO>(true, "Success", MapToDTO(appointment)));
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] MaintenanceAppointment appointment)
+        public ActionResult<ApiResponse<MaintenanceAppointmentDTO>> Post([FromBody] MaintenanceAppointmentDTO dto)
         {
+            if (!ModelState.IsValid) return BadRequest(new ApiResponse<object>(false, "Dữ liệu không hợp lệ", ModelState));
+
+            var appointment = new MaintenanceAppointment
+            {
+                CustomerId = dto.CustomerId,
+                PackageId = dto.PackageId,
+                CustomerName = dto.CustomerName,
+                CustomerPhone = dto.CustomerPhone,
+                CustomerEmail = dto.CustomerEmail,
+                CarName = dto.CarName,
+                LicensePlate = dto.LicensePlate,
+                AppointmentDate = dto.AppointmentDate,
+                AppointmentTime = dto.AppointmentTime,
+                Note = dto.Note,
+                Status = dto.Status ?? "Pending"
+            };
+
             _service.CreateAppointment(appointment);
-            return CreatedAtAction(nameof(Get), new { id = appointment.AppointmentId }, appointment);
+            
+            return Ok(new ApiResponse<MaintenanceAppointmentDTO>(true, "Thêm thành công", MapToDTO(appointment)));
         }
 
         [HttpPut("{id}/status")]
-        public IActionResult UpdateStatus(int id, [FromBody] string status)
+        public ActionResult<ApiResponse<string>> UpdateStatus(int id, [FromBody] UpdateStatusRequest req)
         {
-            _service.UpdateAppointmentStatus(id, status);
-            return NoContent();
+            _service.UpdateAppointmentStatus(id, req.Status, req.Reason);
+            return Ok(new ApiResponse<string>(true, "Cập nhật thành công"));
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public ActionResult<ApiResponse<string>> Delete(int id)
         {
             _service.DeleteAppointment(id);
-            return NoContent();
+            return Ok(new ApiResponse<string>(true, "Xóa thành công"));
         }
     }
 }

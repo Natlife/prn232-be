@@ -9,7 +9,7 @@ namespace Services
         IEnumerable<MaintenanceAppointment> GetAppointmentsByCustomerId(int customerId);
         MaintenanceAppointment GetAppointmentById(int appointmentId);
         void CreateAppointment(MaintenanceAppointment appointment);
-        void UpdateAppointmentStatus(int appointmentId, string status);
+        void UpdateAppointmentStatus(int appointmentId, string status, string? reason = null);
         void DeleteAppointment(int appointmentId);
     }
 }

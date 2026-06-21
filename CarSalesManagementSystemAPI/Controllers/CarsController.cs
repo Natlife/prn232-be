@@ -96,7 +96,7 @@ namespace CarSalesManagementSystemAPI.Controllers
                 var existingCar = _carService.GetCarById(key);
                 if (existingCar == null)
                 {
-                    return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y xe cáº§n cáº­p nháº­t." });
+                    return NotFound(new { message = "Không thấy xe cần cập nhật" });
                 }
                 car.CreatedAt = existingCar.CreatedAt;
                 _carService.UpdateCar(car);
