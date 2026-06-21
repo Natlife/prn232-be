@@ -12,6 +12,7 @@ namespace CarSalesManagementSystemAPI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddHttpClient();
             builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
             builder.Services.AddScoped<IAppRoleRepository, AppRoleRepository>();
             builder.Services.AddScoped<IEmailService, EmailService>();
