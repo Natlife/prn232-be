@@ -42,6 +42,10 @@ public partial class CarShowroomContext : DbContext
 
     public virtual DbSet<DepositCaptcha> DepositCaptchas { get; set; }
 
+    public virtual DbSet<ComboOrder> ComboOrders { get; set; }
+
+    public virtual DbSet<ComboOrderItem> ComboOrderItems { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -541,6 +545,45 @@ public partial class CarShowroomContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.CarId)
                 .HasConstraintName("FK_DepositCaptchas_Cars");
+        });
+
+        modelBuilder.Entity<ComboOrder>(entity =>
+        {
+            entity.HasKey(e => e.ComboOrderId).HasName("PK__ComboOrders");
+
+            entity.Property(e => e.CustomerName).HasMaxLength(100);
+            entity.Property(e => e.CustomerPhone).HasMaxLength(20);
+            entity.Property(e => e.CustomerEmail).HasMaxLength(100);
+            entity.Property(e => e.ShippingAddress).HasMaxLength(255);
+            entity.Property(e => e.Note).HasMaxLength(1000);
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)").HasDefaultValue(0);
+            entity.Property(e => e.Source).HasMaxLength(50).HasDefaultValue("manual");
+            entity.Property(e => e.ChatSessionId).HasMaxLength(100);
+            entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Customer).WithMany()
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ComboOrders_AppUsers");
+        });
+
+        modelBuilder.Entity<ComboOrderItem>(entity =>
+        {
+            entity.HasKey(e => e.ItemId).HasName("PK__ComboOrderItems");
+
+            entity.Property(e => e.ItemType).HasMaxLength(20);
+            entity.Property(e => e.ItemName).HasMaxLength(200);
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.SubTotal).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(d => d.ComboOrder).WithMany(p => p.Items)
+                .HasForeignKey(d => d.ComboOrderId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ComboOrderItems_ComboOrders");
         });
 
         OnModelCreatingPartial(modelBuilder);

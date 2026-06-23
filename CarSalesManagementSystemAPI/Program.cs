@@ -45,6 +45,13 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IDepositCaptchaService, DepositCaptchaService>();
             builder.Services.AddHostedService<DepositCleanupService>();
 
+            // Combo Order stack
+            builder.Services.AddScoped<IComboOrderRepository, ComboOrderRepository>();
+            builder.Services.AddScoped<IComboOrderService, ComboOrderService>();
+
+            // Chat proxy — delegates to Python RAG service
+            builder.Services.AddHttpClient<IChatProxyService, ChatProxyService>();
+
             var modelBuilder = new ODataConventionModelBuilder();
             var cars = modelBuilder.EntitySet<BusinessObjects.Models.Car>("Cars");
             cars.EntityType.HasKey(c => c.CarId);

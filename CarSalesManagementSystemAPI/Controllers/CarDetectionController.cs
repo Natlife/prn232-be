@@ -169,11 +169,3 @@ namespace CarSalesManagementSystemAPI.Controllers
         public List<int> MatchedCarIds { get; set; } = new();
     }
 }
-
-        [JsonPropertyName("predicted_model")]
-        public string? PredictedModel { get; set; }
-
-        [JsonPropertyName("matched_car_ids")]
-        public List<int> MatchedCarIds { get; set; } = new();
-    }
-}
