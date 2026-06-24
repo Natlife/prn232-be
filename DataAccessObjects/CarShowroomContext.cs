@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -45,6 +47,30 @@ public partial class CarShowroomContext : DbContext
     public virtual DbSet<ComboOrder> ComboOrders { get; set; }
 
     public virtual DbSet<ComboOrderItem> ComboOrderItems { get; set; }
+
+    public override int SaveChanges()
+    {
+        TextEncodingNormalizer.NormalizePendingStrings(this);
+        return base.SaveChanges();
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        TextEncodingNormalizer.NormalizePendingStrings(this);
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        TextEncodingNormalizer.NormalizePendingStrings(this);
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        TextEncodingNormalizer.NormalizePendingStrings(this);
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -160,7 +186,7 @@ public partial class CarShowroomContext : DbContext
                     FuelType = "Gasoline",
                     Transmission = "Automatic",
                     Price = 1350000000,
-                    Description = "Xe sang trọng, lịch lãm, gia đình sử dụng kỹ, bảo dưỡng chính hãng.",
+                    Description = "Xe sang tr?ng, l?ch l?m, gia d?nh s? d?ng k?, b?o du?ng ch?nh h?ng.",
                     ImageUrl = "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -177,7 +203,7 @@ public partial class CarShowroomContext : DbContext
                     FuelType = "Gasoline",
                     Transmission = "Automatic",
                     Price = 520000000,
-                    Description = "Xe quốc dân tiết kiệm nhiên liệu, vận hành bền bỉ.",
+                    Description = "Xe qu?c d?n ti?t ki?m nhi?n li?u, v?n h?nh b?n b?.",
                     ImageUrl = "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -194,7 +220,7 @@ public partial class CarShowroomContext : DbContext
                     FuelType = "Diesel",
                     Transmission = "Automatic",
                     Price = 960000000,
-                    Description = "Vua bán tải, phiên bản cao cấp nhất Wildtrak 2 cầu, đầy đủ công nghệ.",
+                    Description = "Vua b?n t?i, phi?n b?n cao c?p nh?t Wildtrak 2 c?u, d?y d? c?ng ngh?.",
                     ImageUrl = "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -211,7 +237,7 @@ public partial class CarShowroomContext : DbContext
                     FuelType = "Electric",
                     Transmission = "Automatic",
                     Price = 1100000000,
-                    Description = "Xe điện thông minh Việt Nam, bản Plus pin SDI, công nghệ ADAS hiện đại.",
+                    Description = "Xe di?n th?ng minh Vi?t Nam, b?n Plus pin SDI, c?ng ngh? ADAS hi?n d?i.",
                     ImageUrl = "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -228,7 +254,7 @@ public partial class CarShowroomContext : DbContext
                     FuelType = "Gasoline",
                     Transmission = "Automatic",
                     Price = 1250000000,
-                    Description = "Dòng sedan thể thao lái cực hay, ngoại hình trẻ trung năng động.",
+                    Description = "D?ng sedan th? thao l?i c?c hay, ngo?i h?nh tr? trung nang d?ng.",
                     ImageUrl = "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -245,7 +271,7 @@ public partial class CarShowroomContext : DbContext
                     FuelType = "Electric",
                     Transmission = "Automatic",
                     Price = 450000000,
-                    Description = "Xe đô thị cỡ nhỏ thông minh, cực kỳ tiết kiệm và nhỏ gọn.",
+                    Description = "Xe d? th? c? nh? th?ng minh, c?c k? ti?t ki?m v? nh? g?n.",
                     ImageUrl = "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -316,8 +342,8 @@ public partial class CarShowroomContext : DbContext
                 new MaintenancePackage
                 {
                     PackageId = 1,
-                    PackageName = "Bảo dưỡng Tiêu chuẩn",
-                    Description = "Kiểm tra toàn diện 30 điểm, thay nhớt động cơ và lọc nhớt, kiểm tra hệ thống phanh và bổ sung nước làm mát. Phù hợp cho bảo dưỡng định kỳ mỗi 5.000 km.",
+                    PackageName = "B?o du?ng Ti?u chu?n",
+                    Description = "Ki?m tra to?n di?n 30 di?m, thay nh?t d?ng co v? l?c nh?t, ki?m tra h? th?ng phanh v? b? sung nu?c l?m m?t. Ph? h?p cho b?o du?ng d?nh k? m?i 5.000 km.",
                     Price = 1500000,
                     EstimatedDuration = 120,
                     Status = "Available",
@@ -326,8 +352,8 @@ public partial class CarShowroomContext : DbContext
                 new MaintenancePackage
                 {
                     PackageId = 2,
-                    PackageName = "Bảo dưỡng Toàn diện VIP",
-                    Description = "Kiểm tra hệ thống điện tử bằng máy chuyên dụng, vệ sinh buồng đốt, vệ sinh kim phun, đảo lốp, cân bằng động và thay toàn bộ chất lỏng (dầu máy, dầu phanh, nước làm mát).",
+                    PackageName = "B?o du?ng To?n di?n VIP",
+                    Description = "Ki?m tra h? th?ng di?n t? b?ng m?y chuy?n d?ng, v? sinh bu?ng d?t, v? sinh kim phun, d?o l?p, c?n b?ng d?ng v? thay to?n b? ch?t l?ng (d?u m?y, d?u phanh, nu?c l?m m?t).",
                     Price = 4500000,
                     EstimatedDuration = 240,
                     Status = "Available",
@@ -336,8 +362,8 @@ public partial class CarShowroomContext : DbContext
                 new MaintenancePackage
                 {
                     PackageId = 3,
-                    PackageName = "Kiểm tra Xe trước Chuyến đi",
-                    Description = "Kiểm tra áp suất lốp, độ mòn lốp, hệ thống chiếu sáng, hệ thống phanh, gạt mưa và bình ắc quy để đảm bảo an toàn tuyệt đối cho chuyến đi dài.",
+                    PackageName = "Ki?m tra Xe tru?c Chuy?n di",
+                    Description = "Ki?m tra ?p su?t l?p, d? m?n l?p, h? th?ng chi?u s?ng, h? th?ng phanh, g?t mua v? b?nh ?c quy d? d?m b?o an to?n tuy?t d?i cho chuy?n di d?i.",
                     Price = 500000,
                     EstimatedDuration = 60,
                     Status = "Available",
@@ -375,12 +401,12 @@ public partial class CarShowroomContext : DbContext
                 {
                     PartId = 1,
                     CategoryId = 4,
-                    PartName = "Lốp xe Michelin Pilot Sport 4",
+                    PartName = "L?p xe Michelin Pilot Sport 4",
                     PartCode = "PT-MIC-PS4",
                     Brand = "Michelin",
                     Price = 3200000,
                     Quantity = 40,
-                    Description = "Lốp hiệu năng cao, bám đường cực tốt trong mọi điều kiện thời tiết.",
+                    Description = "L?p hi?u nang cao, b?m du?ng c?c t?t trong m?i di?u ki?n th?i ti?t.",
                     ImageUrl = "https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -389,12 +415,12 @@ public partial class CarShowroomContext : DbContext
                 {
                     PartId = 2,
                     CategoryId = 2,
-                    PartName = "Ắc quy GS 12V 45Ah",
+                    PartName = "?c quy GS 12V 45Ah",
                     PartCode = "PT-GS-12V45",
                     Brand = "GS Battery",
                     Price = 1450000,
                     Quantity = 25,
-                    Description = "Ắc quy khô miễn bảo dưỡng, độ bền cao, khởi động mạnh mẽ.",
+                    Description = "?c quy kh? mi?n b?o du?ng, d? b?n cao, kh?i d?ng m?nh m?.",
                     ImageUrl = "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -403,12 +429,12 @@ public partial class CarShowroomContext : DbContext
                 {
                     PartId = 3,
                     CategoryId = 3,
-                    PartName = "Dầu nhớt Castrol Magnatec 5W-30",
+                    PartName = "D?u nh?t Castrol Magnatec 5W-30",
                     PartCode = "PT-CAS-5W30",
                     Brand = "Castrol",
                     Price = 850000,
                     Quantity = 50,
-                    Description = "Dầu nhớt công nghệ tổng hợp hoàn toàn bảo vệ động cơ ngay khi khởi động.",
+                    Description = "D?u nh?t c?ng ngh? t?ng h?p ho?n to?n b?o v? d?ng co ngay khi kh?i d?ng.",
                     ImageUrl = "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -417,12 +443,12 @@ public partial class CarShowroomContext : DbContext
                 {
                     PartId = 4,
                     CategoryId = 4,
-                    PartName = "Gạt mưa Bosch Aerotwin",
+                    PartName = "G?t mua Bosch Aerotwin",
                     PartCode = "PT-BOS-AERO",
                     Brand = "Bosch",
                     Price = 450000,
                     Quantity = 60,
-                    Description = "Gạt mưa cao cấp từ Bosch Đức, gạt sạch nước nhẹ nhàng, êm ái.",
+                    Description = "G?t mua cao c?p t? Bosch D?c, g?t s?ch nu?c nh? nh?ng, ?m ?i.",
                     ImageUrl = "https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -431,12 +457,12 @@ public partial class CarShowroomContext : DbContext
                 {
                     PartId = 5,
                     CategoryId = 2,
-                    PartName = "Đèn pha LED Philips Ultinon Essential",
+                    PartName = "D?n pha LED Philips Ultinon Essential",
                     PartCode = "PT-PHI-LEDH7",
                     Brand = "Philips",
                     Price = 1200000,
                     Quantity = 15,
-                    Description = "Bóng đèn LED H7 siêu sáng, gom sáng tốt, độ bền lên đến 5 năm.",
+                    Description = "B?ng d?n LED H7 si?u s?ng, gom s?ng t?t, d? b?n l?n d?n 5 nam.",
                     ImageUrl = "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=600&q=80",
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
@@ -452,10 +478,10 @@ public partial class CarShowroomContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500);
 
             entity.HasData(
-                new PartCategory { CategoryId = 1, CategoryName = "Động cơ & Truyền động", Description = "Các bộ phận liên quan đến động cơ, hộp số và truyền động." },
-                new PartCategory { CategoryId = 2, CategoryName = "Hệ thống điện & Ắc quy", Description = "Ắc quy, máy phát điện, đèn và hệ thống điện." },
-                new PartCategory { CategoryId = 3, CategoryName = "Dầu nhớt & Hóa chất", Description = "Dầu máy, nước làm mát, dầu phanh và hóa chất bảo dưỡng." },
-                new PartCategory { CategoryId = 4, CategoryName = "Ngoại thất & Phụ kiện", Description = "Lốp xe, gạt mưa, gương và các phụ kiện trang trí ngoại thất." }
+                new PartCategory { CategoryId = 1, CategoryName = "D?ng co & Truy?n d?ng", Description = "C?c b? ph?n li?n quan d?n d?ng co, h?p s? v? truy?n d?ng." },
+                new PartCategory { CategoryId = 2, CategoryName = "H? th?ng di?n & ?c quy", Description = "?c quy, m?y ph?t di?n, d?n v? h? th?ng di?n." },
+                new PartCategory { CategoryId = 3, CategoryName = "D?u nh?t & H?a ch?t", Description = "D?u m?y, nu?c l?m m?t, d?u phanh v? h?a ch?t b?o du?ng." },
+                new PartCategory { CategoryId = 4, CategoryName = "Ngo?i th?t & Ph? ki?n", Description = "L?p xe, g?t mua, guong v? c?c ph? ki?n trang tr? ngo?i th?t." }
             );
         });
 
@@ -562,10 +588,15 @@ public partial class CarShowroomContext : DbContext
             entity.Property(e => e.PurchaseType).HasMaxLength(20).HasDefaultValue("Buyout");
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
             entity.Property(e => e.DepositAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.DepositExpiresAt).HasColumnType("datetime");
             entity.Property(e => e.CaptchaCode).HasMaxLength(20);
             entity.Property(e => e.CaptchaGeneratedAt).HasColumnType("datetime");
             entity.Property(e => e.IsCaptchaUsed).HasDefaultValue(false);
             entity.Property(e => e.CaptchaUsedAt).HasColumnType("datetime");
+            entity.Property(e => e.FinalCaptchaCode).HasMaxLength(20);
+            entity.Property(e => e.FinalCaptchaGeneratedAt).HasColumnType("datetime");
+            entity.Property(e => e.IsFinalCaptchaUsed).HasDefaultValue(false);
+            entity.Property(e => e.FinalCaptchaUsedAt).HasColumnType("datetime");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");

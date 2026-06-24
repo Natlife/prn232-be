@@ -40,6 +40,41 @@ BEGIN
 END
 GO
 
+IF COL_LENGTH('ComboOrders', 'DepositExpiresAt') IS NULL
+BEGIN
+    ALTER TABLE ComboOrders
+    ADD DepositExpiresAt DATETIME NULL;
+END
+GO
+
+IF COL_LENGTH('ComboOrders', 'FinalCaptchaCode') IS NULL
+BEGIN
+    ALTER TABLE ComboOrders
+    ADD FinalCaptchaCode NVARCHAR(20) NULL;
+END
+GO
+
+IF COL_LENGTH('ComboOrders', 'FinalCaptchaGeneratedAt') IS NULL
+BEGIN
+    ALTER TABLE ComboOrders
+    ADD FinalCaptchaGeneratedAt DATETIME NULL;
+END
+GO
+
+IF COL_LENGTH('ComboOrders', 'IsFinalCaptchaUsed') IS NULL
+BEGIN
+    ALTER TABLE ComboOrders
+    ADD IsFinalCaptchaUsed BIT NOT NULL CONSTRAINT DF_ComboOrders_IsFinalCaptchaUsed DEFAULT 0;
+END
+GO
+
+IF COL_LENGTH('ComboOrders', 'FinalCaptchaUsedAt') IS NULL
+BEGIN
+    ALTER TABLE ComboOrders
+    ADD FinalCaptchaUsedAt DATETIME NULL;
+END
+GO
+
 UPDATE ComboOrders
 SET PurchaseType = ISNULL(NULLIF(PurchaseType, ''), 'Buyout')
 WHERE PurchaseType IS NULL OR PurchaseType = '';

@@ -21,18 +21,17 @@ public partial class ComboOrder
 
     public string? Note { get; set; }
 
-    /// <summary>chatbot | manual</summary>
     public string Source { get; set; } = "manual";
 
     public string? ChatSessionId { get; set; }
 
-    /// <summary>Deposit | Buyout</summary>
     public string PurchaseType { get; set; } = "Buyout";
 
-    /// <summary>Pending | Confirmed | Processing | Completed | Cancelled</summary>
     public string Status { get; set; } = "Pending";
 
     public decimal? DepositAmount { get; set; }
+
+    public DateTime? DepositExpiresAt { get; set; }
 
     public string? CaptchaCode { get; set; }
 
@@ -41,6 +40,14 @@ public partial class ComboOrder
     public bool IsCaptchaUsed { get; set; }
 
     public DateTime? CaptchaUsedAt { get; set; }
+
+    public string? FinalCaptchaCode { get; set; }
+
+    public DateTime? FinalCaptchaGeneratedAt { get; set; }
+
+    public bool IsFinalCaptchaUsed { get; set; }
+
+    public DateTime? FinalCaptchaUsedAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

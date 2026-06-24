@@ -17,7 +17,7 @@ ALTER TABLE PurchaseRequests
 -- Re-add without constraint name (EF ignores named checks on update)
 -- The application-level validation covers allowed statuses.
 
--- 3. DepositCaptchas — admin inserts codes here; user consumes one to lock a deposit
+-- 3. DepositCaptchas - admin inserts codes here; user consumes one to lock a deposit
 CREATE TABLE DepositCaptchas (
     CaptchaId   INT IDENTITY(1,1) PRIMARY KEY,
     Code        NVARCHAR(20) NOT NULL UNIQUE,

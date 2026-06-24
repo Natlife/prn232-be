@@ -1,16 +1,16 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace BusinessObjects.DTOs;
 
-// ─── CHAT ────────────────────────────────────────────────────────────────────
-
 public class ChatRequestDto
 {
-    [Required(ErrorMessage = "SessionId không được để trống")]
+    [Required(ErrorMessage = "SessionId khong duoc de trong")]
     public string SessionId { get; set; } = null!;
 
-    [Required(ErrorMessage = "Tin nhắn không được để trống")]
-    [StringLength(2000, ErrorMessage = "Tin nhắn không vượt quá 2000 ký tự")]
+    [Required(ErrorMessage = "Tin nhan khong duoc de trong")]
+    [StringLength(2000, ErrorMessage = "Tin nhan khong vuot qua 2000 ky tu")]
     public string Message { get; set; } = null!;
 
     public int? CustomerId { get; set; }
@@ -46,28 +46,26 @@ public class ChatActionDto
     public bool AutoOpenPopup { get; set; }
 }
 
-// ─── COMBO ORDER ─────────────────────────────────────────────────────────────
-
 public class ComboOrderItemInputDto
 {
-    [Required(ErrorMessage = "ItemType bắt buộc")]
-    public string ItemType { get; set; } = null!;   // Car | Part | Service
+    [Required(ErrorMessage = "ItemType bat buoc")]
+    public string ItemType { get; set; } = null!;
 
-    [Range(1, int.MaxValue, ErrorMessage = "ReferenceId phải lớn hơn 0")]
+    [Range(1, int.MaxValue, ErrorMessage = "ReferenceId phai lon hon 0")]
     public int ReferenceId { get; set; }
 
-    [Range(1, 100, ErrorMessage = "Số lượng từ 1 đến 100")]
+    [Range(1, 100, ErrorMessage = "So luong tu 1 den 100")]
     public int Quantity { get; set; } = 1;
 }
 
 public class ComboOrderCreateDto
 {
-    [Required(ErrorMessage = "Số điện thoại không được trống")]
+    [Required(ErrorMessage = "So dien thoai khong duoc de trong")]
     [StringLength(20)]
     public string CustomerPhone { get; set; } = null!;
 
-    [Required(ErrorMessage = "Loại giao dịch là bắt buộc")]
-    [RegularExpression("Deposit|Buyout", ErrorMessage = "Loại giao dịch chỉ nhận Deposit hoặc Buyout")]
+    [Required(ErrorMessage = "Loai giao dich la bat buoc")]
+    [RegularExpression("Deposit|Buyout", ErrorMessage = "Loai giao dich chi nhan Deposit hoac Buyout")]
     public string PurchaseType { get; set; } = "Buyout";
 
     [StringLength(255)]
@@ -79,7 +77,7 @@ public class ComboOrderCreateDto
     public string? ChatSessionId { get; set; }
 
     [Required]
-    [MinLength(1, ErrorMessage = "Đơn hàng phải có ít nhất 1 sản phẩm")]
+    [MinLength(1, ErrorMessage = "Don hang phai co it nhat 1 san pham")]
     public List<ComboOrderItemInputDto> Items { get; set; } = new();
 }
 
@@ -115,7 +113,15 @@ public class ComboOrderCaptchaGenerateDto
 
 public class ComboOrderCaptchaVerifyDto
 {
-    [Required(ErrorMessage = "Mã captcha không được để trống")]
+    [Required(ErrorMessage = "Ma captcha khong duoc de trong")]
     [StringLength(20)]
     public string CaptchaCode { get; set; } = null!;
+}
+
+public class ComboOrderCaptchaInfoDto
+{
+    public string Stage { get; set; } = null!;
+    public string? CaptchaCode { get; set; }
+    public DateTime? GeneratedAt { get; set; }
+    public bool IsUsed { get; set; }
 }
