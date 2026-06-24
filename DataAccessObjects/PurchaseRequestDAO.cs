@@ -18,20 +18,15 @@ public static class PurchaseRequestDAO
         {
             var captcha = ctx.DepositCaptchas.SingleOrDefault(c => c.Code == req.CaptchaCode && c.CarId == req.CarId);
             if (captcha == null)
-            {
-                return new DepositResult { Success = false, Message = "Ma xac nhan khong ton tai hoac khong hop le cho xe nay." };
-            }
-
+                return new DepositResult { Success = false, Message = "Mã xác nhận không tồn tại hoặc không hợp lệ cho xe này." };
             if (captcha.IsUsed)
-            {
-                return new DepositResult { Success = false, Message = "Ma xac nhan nay da duoc su dung." };
-            }
+                return new DepositResult { Success = false, Message = "Mã xác nhận này đã được sử dụng." };
 
             var car = ctx.Cars.SingleOrDefault(c => c.CarId == req.CarId);
             if (car == null)
-            {
-                return new DepositResult { Success = false, Message = "Khong tim thay xe." };
-            }
+                return new DepositResult { Success = false, Message = "Không tìm thấy xe." };
+            if (car.Status != "Available")
+                return new DepositResult { Success = false, Message = "Xe hiện không có sẵn (đã được đặt cọc hoặc đã bán)." };
 
             if (car.Status != "Available")
             {
@@ -43,10 +38,12 @@ public static class PurchaseRequestDAO
                 p.CustomerId == req.CustomerId &&
                 p.Status == "Pending" &&
                 p.DepositExpiry > DateTime.Now);
+            if (alreadyDeposited)
+                return new DepositResult { Success = false, Message = "Bạn đã có lượt đặt cọc cho xe này đang hoạt động." };
 
             if (alreadyDeposited)
             {
-                return new DepositResult { Success = false, Message = "Ban da co luot dat coc xe nay dang hoat dong." };
+                return new DepositResult { Success = false, Message = "Bạn đã có lượt đặt cọc cho xe này đang hoạt động." };
             }
 
             var depositAmount = Math.Round(car.Price * 0.05m, 0);
@@ -65,7 +62,7 @@ public static class PurchaseRequestDAO
                 DepositDate = now,
                 DepositExpiry = now.AddDays(14),
                 CaptchaCode = req.CaptchaCode,
-                Message = $"Dat coc xe. Ma xac nhan: {req.CaptchaCode}"
+                Message = $"Đã đặt cọc: {req.CaptchaCode}"
             };
 
             ctx.PurchaseRequests.Add(request);
@@ -79,7 +76,7 @@ public static class PurchaseRequestDAO
             return new DepositResult
             {
                 Success = true,
-                Message = "Dat coc thanh cong!",
+                Message = "Đặt cọc thành công!",
                 RequestId = request.RequestId,
                 DepositAmount = depositAmount,
                 DepositExpiry = request.DepositExpiry
@@ -88,7 +85,7 @@ public static class PurchaseRequestDAO
         catch (Exception ex)
         {
             transaction.Rollback();
-            return new DepositResult { Success = false, Message = $"Loi he thong: {ExceptionMessageHelper.GetDetailedMessage(ex)}" };
+            return new DepositResult { Success = false, Message = $"Lỗi hệ thống: {ex.Message}" };
         }
     }
 
@@ -101,9 +98,7 @@ public static class PurchaseRequestDAO
         {
             var car = ctx.Cars.SingleOrDefault(c => c.CarId == req.CarId);
             if (car == null)
-            {
-                return new DepositResult { Success = false, Message = "Khong tim thay xe." };
-            }
+                return new DepositResult { Success = false, Message = "Không tìm thấy xe." };
 
             var now = DateTime.Now;
             decimal paymentAmount;
@@ -119,16 +114,17 @@ public static class PurchaseRequestDAO
                     p.DepositExpiry > now);
 
                 if (activeDeposit == null)
-                {
-                    return new DepositResult { Success = false, Message = "Xe da duoc dat coc boi khach hang khac." };
-                }
+                    return new DepositResult { Success = false, Message = "Xe khong co trong danh sach dat coc." };
+
+                if (false && !string.Equals(activeDeposit.CaptchaCode, req.CaptchaCode, StringComparison.OrdinalIgnoreCase))
+                    return new DepositResult { Success = false, Message = "Mã xác nhận không đúng." };
 
                 var paidDeposit = activeDeposit.DepositAmount ?? Math.Round(car.Price * 0.05m, 0);
                 paymentAmount = car.Price - paidDeposit;
 
                 activeDeposit.Status = "Completed";
                 activeDeposit.UpdatedAt = now;
-                activeDeposit.Message = $"Hoan tat mua dut xe. Da coc: {paidDeposit:N0}. Con lai: {paymentAmount:N0}. Ma xac nhan: {req.CaptchaCode}";
+                activeDeposit.Message = $"Hoàn tất mua xe, địa chỉ: {paidDeposit:N0}. còn lại: {paymentAmount:N0}. Mã xác nhận: {req.CaptchaCode}";
                 activeDeposit.DepositAmount = paymentAmount;
                 activeDeposit.DepositExpiry = null;
                 request = activeDeposit;
@@ -136,20 +132,13 @@ public static class PurchaseRequestDAO
             else
             {
                 if (car.Status != "Available")
-                {
-                    return new DepositResult { Success = false, Message = "Xe hien khong co san." };
-                }
+                    return new DepositResult { Success = false, Message = "Xe hiện không còn" };
 
                 var captcha = ctx.DepositCaptchas.SingleOrDefault(c => c.Code == req.CaptchaCode && c.CarId == req.CarId);
                 if (captcha == null)
-                {
-                    return new DepositResult { Success = false, Message = "Ma xac nhan khong ton tai hoac khong hop le cho xe nay." };
-                }
-
+                    return new DepositResult { Success = false, Message = "Mã xác nhận không tồn tại" };
                 if (captcha.IsUsed)
-                {
-                    return new DepositResult { Success = false, Message = "Ma xac nhan nay da duoc su dung." };
-                }
+                    return new DepositResult { Success = false, Message = "Mã xác nhận này đã được sử dụng." };
 
                 paymentAmount = car.Price;
                 request = new PurchaseRequest
@@ -165,7 +154,7 @@ public static class PurchaseRequestDAO
                     DepositDate = now,
                     DepositExpiry = null,
                     CaptchaCode = req.CaptchaCode,
-                    Message = $"Mua dut xe. Ma xac nhan: {req.CaptchaCode}"
+                    Message = $"Mua đứt xe, mã: {req.CaptchaCode}"
                 };
 
                 ctx.PurchaseRequests.Add(request);
@@ -181,7 +170,7 @@ public static class PurchaseRequestDAO
             return new DepositResult
             {
                 Success = true,
-                Message = "Mua dut xe thanh cong!",
+                Message = "Mua đứt xe thành công!",
                 RequestId = request.RequestId,
                 DepositAmount = paymentAmount,
                 DepositExpiry = null
@@ -190,7 +179,7 @@ public static class PurchaseRequestDAO
         catch (Exception ex)
         {
             transaction.Rollback();
-            return new DepositResult { Success = false, Message = $"Loi he thong: {ExceptionMessageHelper.GetDetailedMessage(ex)}" };
+            return new DepositResult { Success = false, Message = $"Lỗi hệ thống: {ex.Message}" };
         }
     }
 

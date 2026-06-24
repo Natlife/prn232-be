@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObjects.Migrations
 {
     [DbContext(typeof(CarShowroomContext))]
-    [Migration("20260603094606_SeedAdminAccount")]
-    partial class SeedAdminAccount
+    [Migration("20260621162515_AddChatbotAndComboOrder")]
+    partial class AddChatbotAndComboOrder
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,6 +45,18 @@ namespace DataAccessObjects.Migrations
                         .IsUnique();
 
                     b.ToTable("AppRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = 1,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            RoleId = 2,
+                            RoleName = "Customer"
+                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.AppUser", b =>
@@ -110,14 +122,27 @@ namespace DataAccessObjects.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 99,
+                            UserId = 1,
+                            Address = "Hanoi",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "admin@group7.com",
+                            Email = "admin@gmail.com",
                             FullName = "System Admin",
                             IsActive = true,
-                            PasswordHash = "$2a$11$jI66yMj5egkHkF0.UF41C.Wls0ZtKv2WbVNqemyJvJjo7OlT8r.4u",
+                            PasswordHash = "$2a$11$ivuFcskipHfVJyUk7X7Cy.72DYWJAKQhFt7uaF2kMrwZ/LAHW1cWO",
                             PhoneNumber = "0987654321",
                             RoleId = 1
+                        },
+                        new
+                        {
+                            UserId = 2,
+                            Address = "HCM City",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "customer@gmail.com",
+                            FullName = "John Customer",
+                            IsActive = true,
+                            PasswordHash = "$2a$11$iR0JU.l1mLeRCyKuClJFxuWqtweaw2kS3oZSRG/lAcD00M603P5Mm",
+                            PhoneNumber = "0123456789",
+                            RoleId = 2
                         });
                 });
 
@@ -190,6 +215,110 @@ namespace DataAccessObjects.Migrations
                     b.HasIndex("BrandId");
 
                     b.ToTable("Cars");
+
+                    b.HasData(
+                        new
+                        {
+                            CarId = 1,
+                            BrandId = 1,
+                            CarName = "Toyota Camry 2.5Q",
+                            Color = "Black",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Xe sang tr?ng, l?ch l?m, gia d?nh s? d?ng k?, b?o du?ng ch?nh h?ng.",
+                            FuelType = "Gasoline",
+                            ImageUrl = "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=600&q=80",
+                            Mileage = 15000,
+                            Model = "Camry",
+                            Price = 1350000000m,
+                            Status = "Available",
+                            Transmission = "Automatic",
+                            Year = 2022
+                        },
+                        new
+                        {
+                            CarId = 2,
+                            BrandId = 1,
+                            CarName = "Toyota Vios 1.5G",
+                            Color = "White",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Xe qu?c d?n ti?t ki?m nhi?n li?u, v?n h?nh b?n b?.",
+                            FuelType = "Gasoline",
+                            ImageUrl = "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=600&q=80",
+                            Mileage = 28000,
+                            Model = "Vios",
+                            Price = 520000000m,
+                            Status = "Available",
+                            Transmission = "Automatic",
+                            Year = 2021
+                        },
+                        new
+                        {
+                            CarId = 3,
+                            BrandId = 2,
+                            CarName = "Ford Ranger Wildtrak 2.0L",
+                            Color = "Orange",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Vua b?n t?i, phi?n b?n cao c?p nh?t Wildtrak 2 c?u, d?y d? c?ng ngh?.",
+                            FuelType = "Diesel",
+                            ImageUrl = "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=600&q=80",
+                            Mileage = 8000,
+                            Model = "Ranger",
+                            Price = 960000000m,
+                            Status = "Available",
+                            Transmission = "Automatic",
+                            Year = 2023
+                        },
+                        new
+                        {
+                            CarId = 4,
+                            BrandId = 3,
+                            CarName = "VinFast VF8 Plus",
+                            Color = "Blue",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Xe di?n th?ng minh Vi?t Nam, b?n Plus pin SDI, c?ng ngh? ADAS hi?n d?i.",
+                            FuelType = "Electric",
+                            ImageUrl = "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=600&q=80",
+                            Mileage = 5000,
+                            Model = "VF8",
+                            Price = 1100000000m,
+                            Status = "Available",
+                            Transmission = "Automatic",
+                            Year = 2023
+                        },
+                        new
+                        {
+                            CarId = 5,
+                            BrandId = 4,
+                            CarName = "BMW 320i Sport Line",
+                            Color = "Red",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "D?ng sedan th? thao l?i c?c hay, ngo?i h?nh tr? trung nang d?ng.",
+                            FuelType = "Gasoline",
+                            ImageUrl = "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80",
+                            Mileage = 35000,
+                            Model = "3 Series",
+                            Price = 1250000000m,
+                            Status = "Available",
+                            Transmission = "Automatic",
+                            Year = 2020
+                        },
+                        new
+                        {
+                            CarId = 6,
+                            BrandId = 3,
+                            CarName = "VinFast VF5 Plus",
+                            Color = "Gray",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Xe d? th? c? nh? th?ng minh, c?c k? ti?t ki?m v? nh? g?n.",
+                            FuelType = "Electric",
+                            ImageUrl = "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=600&q=80",
+                            Mileage = 2000,
+                            Model = "VF5",
+                            Price = 450000000m,
+                            Status = "Available",
+                            Transmission = "Automatic",
+                            Year = 2023
+                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.CarBrand", b =>
@@ -217,6 +346,186 @@ namespace DataAccessObjects.Migrations
                         .HasName("PK__CarBrand__DAD4F05EFE11BDE9");
 
                     b.ToTable("CarBrands");
+
+                    b.HasData(
+                        new
+                        {
+                            BrandId = 1,
+                            BrandName = "Toyota",
+                            Country = "Japan",
+                            Description = "Toyota Motor Corporation"
+                        },
+                        new
+                        {
+                            BrandId = 2,
+                            BrandName = "Ford",
+                            Country = "USA",
+                            Description = "Ford Motor Company"
+                        },
+                        new
+                        {
+                            BrandId = 3,
+                            BrandName = "VinFast",
+                            Country = "Vietnam",
+                            Description = "VinFast Vietnam"
+                        },
+                        new
+                        {
+                            BrandId = 4,
+                            BrandName = "BMW",
+                            Country = "Germany",
+                            Description = "Bayerische Motoren Werke AG"
+                        });
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ComboOrder", b =>
+                {
+                    b.Property<int>("ComboOrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ComboOrderId"));
+
+                    b.Property<string>("ChatSessionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("CustomerEmail")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CustomerPhone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ShippingAddress")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("manual");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<decimal>("TotalAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("ComboOrderId")
+                        .HasName("PK__ComboOrders");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("ComboOrders");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ComboOrderItem", b =>
+                {
+                    b.Property<int>("ItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemId"));
+
+                    b.Property<int>("ComboOrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReferenceId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ItemId")
+                        .HasName("PK__ComboOrderItems");
+
+                    b.HasIndex("ComboOrderId");
+
+                    b.ToTable("ComboOrderItems");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.DepositCaptcha", b =>
+                {
+                    b.Property<int>("CaptchaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CaptchaId"));
+
+                    b.Property<int>("CarId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("CaptchaId");
+
+                    b.HasIndex("CarId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("DepositCaptchas");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.MaintenanceAppointment", b =>
@@ -424,6 +733,78 @@ namespace DataAccessObjects.Migrations
                         .IsUnique();
 
                     b.ToTable("Parts");
+
+                    b.HasData(
+                        new
+                        {
+                            PartId = 1,
+                            Brand = "Michelin",
+                            CategoryId = 4,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "L?p hi?u nang cao, b?m du?ng c?c t?t trong m?i di?u ki?n th?i ti?t.",
+                            ImageUrl = "https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=600&q=80",
+                            PartCode = "PT-MIC-PS4",
+                            PartName = "L?p xe Michelin Pilot Sport 4",
+                            Price = 3200000m,
+                            Quantity = 40,
+                            Status = "Available"
+                        },
+                        new
+                        {
+                            PartId = 2,
+                            Brand = "GS Battery",
+                            CategoryId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "?c quy kh? mi?n b?o du?ng, d? b?n cao, kh?i d?ng m?nh m?.",
+                            ImageUrl = "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=600&q=80",
+                            PartCode = "PT-GS-12V45",
+                            PartName = "?c quy GS 12V 45Ah",
+                            Price = 1450000m,
+                            Quantity = 25,
+                            Status = "Available"
+                        },
+                        new
+                        {
+                            PartId = 3,
+                            Brand = "Castrol",
+                            CategoryId = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "D?u nh?t c?ng ngh? t?ng h?p ho?n to?n b?o v? d?ng co ngay khi kh?i d?ng.",
+                            ImageUrl = "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=600&q=80",
+                            PartCode = "PT-CAS-5W30",
+                            PartName = "D?u nh?t Castrol Magnatec 5W-30",
+                            Price = 850000m,
+                            Quantity = 50,
+                            Status = "Available"
+                        },
+                        new
+                        {
+                            PartId = 4,
+                            Brand = "Bosch",
+                            CategoryId = 4,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "G?t mua cao c?p t? Bosch D?c, g?t s?ch nu?c nh? nh?ng, ?m ?i.",
+                            ImageUrl = "https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?auto=format&fit=crop&w=600&q=80",
+                            PartCode = "PT-BOS-AERO",
+                            PartName = "G?t mua Bosch Aerotwin",
+                            Price = 450000m,
+                            Quantity = 60,
+                            Status = "Available"
+                        },
+                        new
+                        {
+                            PartId = 5,
+                            Brand = "Philips",
+                            CategoryId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "B?ng d?n LED H7 si?u s?ng, gom s?ng t?t, d? b?n l?n d?n 5 nam.",
+                            ImageUrl = "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=600&q=80",
+                            PartCode = "PT-PHI-LEDH7",
+                            PartName = "D?n pha LED Philips Ultinon Essential",
+                            Price = 1200000m,
+                            Quantity = 15,
+                            Status = "Available"
+                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.PartCategory", b =>
@@ -447,6 +828,32 @@ namespace DataAccessObjects.Migrations
                         .HasName("PK__PartCate__19093A0B38EB3018");
 
                     b.ToTable("PartCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryId = 1,
+                            CategoryName = "D?ng co & Truy?n d?ng",
+                            Description = "C?c b? ph?n li?n quan d?n d?ng co, h?p s? v? truy?n d?ng."
+                        },
+                        new
+                        {
+                            CategoryId = 2,
+                            CategoryName = "H? th?ng di?n & ?c quy",
+                            Description = "?c quy, m?y ph?t di?n, d?n v? h? th?ng di?n."
+                        },
+                        new
+                        {
+                            CategoryId = 3,
+                            CategoryName = "D?u nh?t & H?a ch?t",
+                            Description = "D?u m?y, nu?c l?m m?t, d?u phanh v? h?a ch?t b?o du?ng."
+                        },
+                        new
+                        {
+                            CategoryId = 4,
+                            CategoryName = "Ngo?i th?t & Ph? ki?n",
+                            Description = "L?p xe, g?t mua, guong v? c?c ph? ki?n trang tr? ngo?i th?t."
+                        });
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.PartOrder", b =>
@@ -546,6 +953,10 @@ namespace DataAccessObjects.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestId"));
 
+                    b.Property<string>("CaptchaCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<int>("CarId")
                         .HasColumnType("int");
 
@@ -570,6 +981,15 @@ namespace DataAccessObjects.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal?>("DepositAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("DepositDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("DepositExpiry")
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Message")
                         .HasMaxLength(1000)
@@ -615,6 +1035,41 @@ namespace DataAccessObjects.Migrations
                         .HasConstraintName("FK_Cars_CarBrands");
 
                     b.Navigation("Brand");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ComboOrder", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.AppUser", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .IsRequired()
+                        .HasConstraintName("FK_ComboOrders_AppUsers");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ComboOrderItem", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.ComboOrder", "ComboOrder")
+                        .WithMany("Items")
+                        .HasForeignKey("ComboOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ComboOrderItems_ComboOrders");
+
+                    b.Navigation("ComboOrder");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.DepositCaptcha", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.Car", "Car")
+                        .WithMany()
+                        .HasForeignKey("CarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_DepositCaptchas_Cars");
+
+                    b.Navigation("Car");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.MaintenanceAppointment", b =>
@@ -718,6 +1173,11 @@ namespace DataAccessObjects.Migrations
             modelBuilder.Entity("BusinessObjects.Models.CarBrand", b =>
                 {
                     b.Navigation("Cars");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ComboOrder", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.MaintenancePackage", b =>

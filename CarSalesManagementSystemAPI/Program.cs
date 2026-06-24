@@ -16,6 +16,7 @@ namespace CarSalesManagementSystemAPI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddHttpClient();
             builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
             builder.Services.AddScoped<IAppRoleRepository, AppRoleRepository>();
             builder.Services.AddScoped<IEmailService, EmailService>();
@@ -44,6 +45,13 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IDepositCaptchaRepository, DepositCaptchaRepository>();
             builder.Services.AddScoped<IDepositCaptchaService, DepositCaptchaService>();
             builder.Services.AddHostedService<DepositCleanupService>();
+
+            // Combo Order stack
+            builder.Services.AddScoped<IComboOrderRepository, ComboOrderRepository>();
+            builder.Services.AddScoped<IComboOrderService, ComboOrderService>();
+
+            // Chat proxy — delegates to Python RAG service
+            builder.Services.AddHttpClient<IChatProxyService, ChatProxyService>();
 
             var modelBuilder = new ODataConventionModelBuilder();
             var cars = modelBuilder.EntitySet<BusinessObjects.Models.Car>("Cars");

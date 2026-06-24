@@ -59,7 +59,7 @@ public class DepositCaptchaDAO
         var carExists = context.Cars.Any(c => c.CarId == carId);
         if (!carExists)
         {
-            throw new ArgumentException("Xe khong ton tai.");
+            throw new ArgumentException("Xe không tồn tại.");
         }
 
         var finalCode = string.IsNullOrWhiteSpace(code) ? GenerateRandomCode(context) : code.Trim().ToUpperInvariant();
@@ -68,7 +68,11 @@ public class DepositCaptchaDAO
         {
             if (!string.IsNullOrWhiteSpace(code))
             {
-                throw new ArgumentException("Ma xac nhan nay da ton tai trong he thong.");
+                throw new ArgumentException("Mã xác nhận này đã tồn tại trong hệ thống.");
+            }
+            else
+            {
+                finalCode = GenerateRandomCode(context);
             }
 
             finalCode = GenerateRandomCode(context);

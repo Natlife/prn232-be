@@ -78,5 +78,33 @@ public class DepositCleanupService : BackgroundService
             await dbContext.SaveChangesAsync();
             _logger.LogInformation("Successfully updated expired deposits and restored car stock.");
         }
+
+        var expiredComboDeposits = await dbContext.ComboOrders
+            .Include(o => o.Items)
+            .Where(o => o.Status == "Deposited" && o.DepositExpiresAt != null && o.DepositExpiresAt < now)
+            .ToListAsync();
+
+        if (expiredComboDeposits.Any())
+        {
+            _logger.LogInformation("Found {Count} expired combo deposits to clean up.", expiredComboDeposits.Count);
+
+            foreach (var order in expiredComboDeposits)
+            {
+                order.Status = "DepositExpired";
+                order.UpdatedAt = now;
+
+                foreach (var item in order.Items.Where(i => i.ItemType == "Car"))
+                {
+                    var car = await dbContext.Cars.SingleOrDefaultAsync(c => c.CarId == item.ReferenceId);
+                    if (car != null && car.Status == "Reserved")
+                    {
+                        car.Status = "Available";
+                    }
+                }
+            }
+
+            await dbContext.SaveChangesAsync();
+            _logger.LogInformation("Successfully expired combo deposits and restored reserved cars.");
+        }
     }
 }
