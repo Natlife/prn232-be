@@ -195,12 +195,13 @@ namespace CarSalesManagementSystemAPI
                     }
                     catch (System.Exception ex)
                     {
-                        System.Console.WriteLine($"Error modifying PartOrders schema: {ex.Message}");
+                        System.Console.WriteLine($"Error modifying PartOrders schema: {ex.InnerException?.Message ?? ex.Message}");
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    System.Console.WriteLine($"Error running migrations: {ex.Message}");
+                    System.Console.WriteLine($"Error running migrations: {ex.InnerException?.Message ?? ex.Message}");
+                    throw;
                 }
             }
 

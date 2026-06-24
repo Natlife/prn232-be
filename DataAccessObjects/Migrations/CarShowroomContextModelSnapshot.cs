@@ -122,7 +122,7 @@ namespace DataAccessObjects.Migrations
                             UserId = 1,
                             Address = "Hanoi",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "admin@carshowroom.com",
+                            Email = "admin@gmail.com",
                             FullName = "System Admin",
                             IsActive = true,
                             PasswordHash = "$2a$11$ivuFcskipHfVJyUk7X7Cy.72DYWJAKQhFt7uaF2kMrwZ/LAHW1cWO",
@@ -134,7 +134,7 @@ namespace DataAccessObjects.Migrations
                             UserId = 2,
                             Address = "HCM City",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "customer@carshowroom.com",
+                            Email = "customer@gmail.com",
                             FullName = "John Customer",
                             IsActive = true,
                             PasswordHash = "$2a$11$iR0JU.l1mLeRCyKuClJFxuWqtweaw2kS3oZSRG/lAcD00M603P5Mm",
@@ -373,6 +373,43 @@ namespace DataAccessObjects.Migrations
                             Country = "Germany",
                             Description = "Bayerische Motoren Werke AG"
                         });
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.DepositCaptcha", b =>
+                {
+                    b.Property<int>("CaptchaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CaptchaId"));
+
+                    b.Property<int>("CarId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("CaptchaId");
+
+                    b.HasIndex("CarId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("DepositCaptchas");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.MaintenanceAppointment", b =>
@@ -733,10 +770,21 @@ namespace DataAccessObjects.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("ShippingAddress")
+                    b.Property<string>("DeliveryMethod")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Pickup");
+
+                    b.Property<string>("ShippingAddress")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<decimal>("ShippingFee")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -800,6 +848,10 @@ namespace DataAccessObjects.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestId"));
 
+                    b.Property<string>("CaptchaCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<int>("CarId")
                         .HasColumnType("int");
 
@@ -824,6 +876,15 @@ namespace DataAccessObjects.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal?>("DepositAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("DepositDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("DepositExpiry")
+                        .HasColumnType("datetime");
 
                     b.Property<string>("Message")
                         .HasMaxLength(1000)
@@ -869,6 +930,18 @@ namespace DataAccessObjects.Migrations
                         .HasConstraintName("FK_Cars_CarBrands");
 
                     b.Navigation("Brand");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.DepositCaptcha", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.Car", "Car")
+                        .WithMany()
+                        .HasForeignKey("CarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_DepositCaptchas_Cars");
+
+                    b.Navigation("Car");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.MaintenanceAppointment", b =>

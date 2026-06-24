@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BusinessObjects.Models;
-using Repositories;
 using DataAccessObjects;
 using Microsoft.EntityFrameworkCore;
+using Repositories;
 
 namespace Services
 {
@@ -25,7 +25,6 @@ namespace Services
 
         public void AddOrder(PartOrder order)
         {
-            // Validate delivery method and address
             if (string.IsNullOrEmpty(order.DeliveryMethod))
             {
                 order.DeliveryMethod = "Pickup";
@@ -33,10 +32,9 @@ namespace Services
 
             if (order.DeliveryMethod == "HomeDelivery" && string.IsNullOrWhiteSpace(order.ShippingAddress))
             {
-                throw new InvalidOperationException("Địa chỉ giao hàng là bắt buộc khi chọn phương thức Giao hàng tận nơi.");
+                throw new InvalidOperationException("Dia chi giao hang la bat buoc khi chon Giao hang tan noi.");
             }
 
-            // Set shipping fee dynamically based on delivery method
             order.ShippingFee = order.DeliveryMethod switch
             {
                 "HomeDelivery" => 30000m,
@@ -46,6 +44,7 @@ namespace Services
 
             using var context = new CarShowroomContext();
             using var transaction = context.Database.BeginTransaction();
+
             try
             {
                 decimal total = 0;
@@ -54,18 +53,19 @@ namespace Services
                     var part = context.Parts.SingleOrDefault(p => p.PartId == detail.PartId);
                     if (part == null)
                     {
-                        throw new InvalidOperationException($"Không tìm thấy phụ tùng với ID: {detail.PartId}");
-                    }
-                    if (part.Quantity < detail.Quantity)
-                    {
-                        throw new InvalidOperationException($"Số lượng tồn kho cho phụ tùng '{part.PartName}' không đủ (Chỉ còn {part.Quantity} sản phẩm).");
-                    }
-                    if (part.Status != "Available" && part.Status != "Available")
-                    {
-                        throw new InvalidOperationException($"Phụ tùng '{part.PartName}' hiện không sẵn sàng để bán.");
+                        throw new InvalidOperationException($"Khong tim thay phu tung voi ID: {detail.PartId}");
                     }
 
-                    // Decrement stock
+                    if (part.Quantity < detail.Quantity)
+                    {
+                        throw new InvalidOperationException($"So luong ton kho cho phu tung '{part.PartName}' khong du.");
+                    }
+
+                    if (part.Status != "Available")
+                    {
+                        throw new InvalidOperationException($"Phu tung '{part.PartName}' hien khong san sang de ban.");
+                    }
+
                     part.Quantity -= detail.Quantity;
                     if (part.Quantity == 0)
                     {
@@ -85,13 +85,12 @@ namespace Services
 
                 context.PartOrders.Add(order);
                 context.SaveChanges();
-
                 transaction.Commit();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 transaction.Rollback();
-                throw;
+                throw new InvalidOperationException(ExceptionMessageHelper.GetDetailedMessage(ex), ex);
             }
         }
 
@@ -99,6 +98,7 @@ namespace Services
         {
             using var context = new CarShowroomContext();
             using var transaction = context.Database.BeginTransaction();
+
             try
             {
                 var dbOrder = context.PartOrders
@@ -107,13 +107,11 @@ namespace Services
 
                 if (dbOrder == null)
                 {
-                    throw new InvalidOperationException("Không tìm thấy đơn hàng cần cập nhật.");
+                    throw new InvalidOperationException("Khong tim thay don hang can cap nhat.");
                 }
 
-                // Check if transitioning to Cancelled
                 if (order.Status == "Cancelled" && dbOrder.Status != "Cancelled")
                 {
-                    // Restore stock
                     foreach (var detail in dbOrder.PartOrderDetails)
                     {
                         var part = context.Parts.SingleOrDefault(p => p.PartId == detail.PartId);
@@ -124,15 +122,14 @@ namespace Services
                             {
                                 part.Status = "Available";
                             }
+
                             context.Entry(part).State = EntityState.Modified;
                         }
                     }
                 }
 
-                // Update properties
                 dbOrder.Status = order.Status;
                 dbOrder.UpdatedAt = DateTime.Now;
-                if (dbOrder.Status != null) dbOrder.Status = order.Status;
                 if (order.CustomerName != null) dbOrder.CustomerName = order.CustomerName;
                 if (order.CustomerPhone != null) dbOrder.CustomerPhone = order.CustomerPhone;
                 if (order.CustomerEmail != null) dbOrder.CustomerEmail = order.CustomerEmail;
@@ -143,10 +140,10 @@ namespace Services
                 context.SaveChanges();
                 transaction.Commit();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 transaction.Rollback();
-                throw;
+                throw new InvalidOperationException(ExceptionMessageHelper.GetDetailedMessage(ex), ex);
             }
         }
     }

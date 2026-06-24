@@ -8,8 +8,8 @@ namespace DataAccessObjects;
 
 public class DepositCaptchaDAO
 {
-    private static DepositCaptchaDAO? _instance = null;
-    private static readonly object _instanceLock = new object();
+    private static DepositCaptchaDAO? _instance;
+    private static readonly object _instanceLock = new();
 
     private DepositCaptchaDAO() { }
 
@@ -19,10 +19,7 @@ public class DepositCaptchaDAO
         {
             lock (_instanceLock)
             {
-                if (_instance == null)
-                {
-                    _instance = new DepositCaptchaDAO();
-                }
+                _instance ??= new DepositCaptchaDAO();
                 return _instance;
             }
         }
@@ -43,33 +40,38 @@ public class DepositCaptchaDAO
     public void AddCaptcha(DepositCaptcha captcha)
     {
         using var context = new CarShowroomContext();
-        context.DepositCaptchas.Add(captcha);
-        context.SaveChanges();
+
+        try
+        {
+            context.DepositCaptchas.Add(captcha);
+            context.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(ExceptionMessageHelper.GetDetailedMessage(ex), ex);
+        }
     }
 
     public DepositCaptcha GenerateCaptcha(int carId, string? code)
     {
         using var context = new CarShowroomContext();
-        
+
         var carExists = context.Cars.Any(c => c.CarId == carId);
         if (!carExists)
         {
-            throw new ArgumentException("Xe không tồn tại.");
+            throw new ArgumentException("Xe khong ton tai.");
         }
 
-        string finalCode = string.IsNullOrEmpty(code) ? GenerateRandomCode(context) : code.Trim().ToUpper();
-
+        var finalCode = string.IsNullOrWhiteSpace(code) ? GenerateRandomCode(context) : code.Trim().ToUpperInvariant();
         var exists = context.DepositCaptchas.Any(c => c.Code == finalCode);
         if (exists)
         {
-            if (!string.IsNullOrEmpty(code))
+            if (!string.IsNullOrWhiteSpace(code))
             {
-                throw new ArgumentException("Mã xác nhận này đã tồn tại trong hệ thống.");
+                throw new ArgumentException("Ma xac nhan nay da ton tai trong he thong.");
             }
-            else
-            {
-                finalCode = GenerateRandomCode(context);
-            }
+
+            finalCode = GenerateRandomCode(context);
         }
 
         var captcha = new DepositCaptcha
@@ -80,8 +82,15 @@ public class DepositCaptchaDAO
             CreatedAt = DateTime.Now
         };
 
-        context.DepositCaptchas.Add(captcha);
-        context.SaveChanges();
+        try
+        {
+            context.DepositCaptchas.Add(captcha);
+            context.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(ExceptionMessageHelper.GetDetailedMessage(ex), ex);
+        }
 
         captcha.Car = context.Cars.Single(c => c.CarId == carId);
         return captcha;
@@ -92,6 +101,7 @@ public class DepositCaptchaDAO
         var random = new Random();
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         string code;
+
         do
         {
             code = new string(Enumerable.Repeat(chars, 6)
