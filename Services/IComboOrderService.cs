@@ -24,4 +24,6 @@ public interface IComboOrderService
 
     /// <summary>Admin-only status transition.</summary>
     void UpdateStatus(int comboOrderId, string newStatus);
+    ComboOrder GenerateCaptcha(int comboOrderId, string? code);
+    ComboOrder VerifyCaptcha(int comboOrderId, int customerId, string captchaCode);
 }

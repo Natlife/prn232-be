@@ -99,6 +99,7 @@ public class ChatProxyService : IChatProxyService
             Reply = message,
             SessionId = sessionId,
             SuggestedItems = new(),
+            Action = null,
             HasOrderSuggestion = false,
         };
 }

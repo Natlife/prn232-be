@@ -26,8 +26,21 @@ public partial class ComboOrder
 
     public string? ChatSessionId { get; set; }
 
+    /// <summary>Deposit | Buyout</summary>
+    public string PurchaseType { get; set; } = "Buyout";
+
     /// <summary>Pending | Confirmed | Processing | Completed | Cancelled</summary>
     public string Status { get; set; } = "Pending";
+
+    public decimal? DepositAmount { get; set; }
+
+    public string? CaptchaCode { get; set; }
+
+    public DateTime? CaptchaGeneratedAt { get; set; }
+
+    public bool IsCaptchaUsed { get; set; }
+
+    public DateTime? CaptchaUsedAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

@@ -559,7 +559,13 @@ public partial class CarShowroomContext : DbContext
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)").HasDefaultValue(0);
             entity.Property(e => e.Source).HasMaxLength(50).HasDefaultValue("manual");
             entity.Property(e => e.ChatSessionId).HasMaxLength(100);
+            entity.Property(e => e.PurchaseType).HasMaxLength(20).HasDefaultValue("Buyout");
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
+            entity.Property(e => e.DepositAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CaptchaCode).HasMaxLength(20);
+            entity.Property(e => e.CaptchaGeneratedAt).HasColumnType("datetime");
+            entity.Property(e => e.IsCaptchaUsed).HasDefaultValue(false);
+            entity.Property(e => e.CaptchaUsedAt).HasColumnType("datetime");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");

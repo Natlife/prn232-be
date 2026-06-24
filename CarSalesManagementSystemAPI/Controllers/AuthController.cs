@@ -1,5 +1,9 @@
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Repositories;
 using Services;
 
 namespace CarSalesManagementSystemAPI.Controllers
@@ -9,17 +13,19 @@ namespace CarSalesManagementSystemAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IAppUserRepository _userRepository;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IAppUserRepository userRepository)
         {
             _authService = authService;
+            _userRepository = userRepository;
         }
 
         public class RegisterRequest
         {
-            public string FullName { get; set; }
-            public string Email { get; set; }
-            public string Password { get; set; }
+            public string FullName { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+            public string Password { get; set; } = string.Empty;
         }
 
         [HttpPost("Register")]
@@ -27,14 +33,15 @@ namespace CarSalesManagementSystemAPI.Controllers
         {
             bool result = await _authService.RegisterAsync(request.FullName, request.Email, request.Password);
             if (!result)
-                return BadRequest(new { Message = "Email đã tồn tại." });
-            return Ok(new { Message = "Đăng ký thành công! Vui lòng kiểm tra Email để lấy mã xác nhận OTP." });
+                return BadRequest(new { Message = "Email da ton tai." });
+
+            return Ok(new { Message = "Dang ky thanh cong! Vui long kiem tra Email de lay ma xac nhan OTP." });
         }
 
         public class VerifyRequest
         {
-            public string Email { get; set; }
-            public string Otp { get; set; }
+            public string Email { get; set; } = string.Empty;
+            public string Otp { get; set; } = string.Empty;
         }
 
         [HttpPost("VerifyEmail")]
@@ -42,14 +49,15 @@ namespace CarSalesManagementSystemAPI.Controllers
         {
             bool result = await _authService.VerifyEmailAsync(request.Email, request.Otp);
             if (!result)
-                return BadRequest(new { Message = "Mã OTP không hợp lệ hoặc đã hết hạn." });
-            return Ok(new { Message = "Xác thực Email thành công. Bạn đã có thể đăng nhập." });
+                return BadRequest(new { Message = "Ma OTP khong hop le hoac da het han." });
+
+            return Ok(new { Message = "Xac thuc Email thanh cong. Ban da co the dang nhap." });
         }
 
         public class LoginRequest
         {
-            public string Email { get; set; }
-            public string Password { get; set; }
+            public string Email { get; set; } = string.Empty;
+            public string Password { get; set; } = string.Empty;
         }
 
         [HttpPost("Login")]
@@ -57,14 +65,14 @@ namespace CarSalesManagementSystemAPI.Controllers
         {
             var token = _authService.Login(request.Email, request.Password);
             if (token == null)
-                return Unauthorized(new { Message = "Email hoặc Mật khẩu không đúng. Vui lòng kiểm tra lại (Lưu ý: Bạn phải xác nhận Email trước khi đăng nhập)." });
-            
-            return Ok(new { Token = token, Message = "Đăng nhập thành công!" });
+                return Unauthorized(new { Message = "Email hoac Mat khau khong dung. Vui long kiem tra lai (Luu y: Ban phai xac nhan Email truoc khi dang nhap)." });
+
+            return Ok(new { Token = token, Message = "Dang nhap thanh cong!" });
         }
 
         public class ForgotPasswordRequest
         {
-            public string Email { get; set; }
+            public string Email { get; set; } = string.Empty;
         }
 
         [HttpPost("ForgotPassword")]
@@ -72,15 +80,16 @@ namespace CarSalesManagementSystemAPI.Controllers
         {
             bool result = await _authService.ForgotPasswordAsync(request.Email);
             if (!result)
-                return BadRequest(new { Message = "Không tìm thấy tài khoản với Email này." });
-            return Ok(new { Message = "Vui lòng kiểm tra Email để lấy mã OTP đặt lại mật khẩu." });
+                return BadRequest(new { Message = "Khong tim thay tai khoan voi Email nay." });
+
+            return Ok(new { Message = "Vui long kiem tra Email de lay ma OTP dat lai mat khau." });
         }
 
         public class ResetPasswordRequest
         {
-            public string Email { get; set; }
-            public string Otp { get; set; }
-            public string NewPassword { get; set; }
+            public string Email { get; set; } = string.Empty;
+            public string Otp { get; set; } = string.Empty;
+            public string NewPassword { get; set; } = string.Empty;
         }
 
         [HttpPost("ResetPassword")]
@@ -88,8 +97,68 @@ namespace CarSalesManagementSystemAPI.Controllers
         {
             bool result = _authService.ResetPassword(request.Email, request.Otp, request.NewPassword);
             if (!result)
-                return BadRequest(new { Message = "Mã OTP không hợp lệ hoặc đã hết hạn." });
-            return Ok(new { Message = "Đặt lại mật khẩu thành công!" });
+                return BadRequest(new { Message = "Ma OTP khong hop le hoac da het han." });
+
+            return Ok(new { Message = "Dat lai mat khau thanh cong!" });
+        }
+
+        public class UpdatePhoneRequest
+        {
+            public string PhoneNumber { get; set; } = string.Empty;
+        }
+
+        [Authorize]
+        [HttpGet("Me")]
+        public IActionResult Me()
+        {
+            var user = GetCurrentUser();
+            if (user == null)
+                return Unauthorized(new { Message = "Khong xac dinh duoc nguoi dung hien tai." });
+
+            return Ok(new
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role?.RoleName ?? "Customer"
+            });
+        }
+
+        [Authorize]
+        [HttpPut("Me/Phone")]
+        public IActionResult UpdatePhone([FromBody] UpdatePhoneRequest request)
+        {
+            var user = GetCurrentUser();
+            if (user == null)
+                return Unauthorized(new { Message = "Khong xac dinh duoc nguoi dung hien tai." });
+
+            var phoneNumber = request?.PhoneNumber?.Trim();
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+                return BadRequest(new { Message = "Vui long nhap so dien thoai." });
+
+            if (!Regex.IsMatch(phoneNumber, @"^[0-9+\-\s]{8,20}$"))
+                return BadRequest(new { Message = "So dien thoai khong hop le." });
+
+            user.PhoneNumber = phoneNumber;
+            _userRepository.UpdateUser(user);
+
+            return Ok(new
+            {
+                Message = "Cap nhat so dien thoai thanh cong.",
+                PhoneNumber = user.PhoneNumber
+            });
+        }
+
+        private BusinessObjects.Models.AppUser? GetCurrentUser()
+        {
+            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("sub")?.Value;
+
+            if (!int.TryParse(userIdValue, out var userId))
+                return null;
+
+            return _userRepository.GetUserById(userId);
         }
     }
 }

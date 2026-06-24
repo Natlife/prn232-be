@@ -31,6 +31,7 @@ namespace Services;
 public class ComboOrderService : IComboOrderService
 {
     private static readonly HashSet<string> AllowedItemTypes = new() { "Car", "Part", "Service" };
+    private static readonly HashSet<string> AllowedPurchaseTypes = new() { "Deposit", "Buyout" };
 
     private readonly IComboOrderRepository _comboOrderRepository;
 
@@ -57,6 +58,11 @@ public class ComboOrderService : IComboOrderService
         string source = "manual")
     {
         var resolvedItems = dto.Items.Select(ResolveItemPreview).ToList();
+        var purchaseType = string.IsNullOrWhiteSpace(dto.PurchaseType) ? "Buyout" : dto.PurchaseType.Trim();
+        if (!AllowedPurchaseTypes.Contains(purchaseType))
+            throw new InvalidOperationException("Loại giao dịch không hợp lệ. Chỉ chấp nhận Deposit hoặc Buyout.");
+
+        var totalAmount = resolvedItems.Sum(i => i.SubTotal);
 
         var order = new ComboOrder
         {
@@ -67,7 +73,9 @@ public class ComboOrderService : IComboOrderService
             Note = dto.Note,
             ChatSessionId = dto.ChatSessionId,
             Source = source,
-            TotalAmount = resolvedItems.Sum(i => i.SubTotal),
+            PurchaseType = purchaseType,
+            TotalAmount = totalAmount,
+            DepositAmount = purchaseType == "Deposit" ? Math.Round(totalAmount * 0.05m, 0) : totalAmount,
             Items = resolvedItems.Select(i => new ComboOrderItem
             {
                 ItemType = i.ItemType,
@@ -94,6 +102,12 @@ public class ComboOrderService : IComboOrderService
 
     public void UpdateStatus(int comboOrderId, string newStatus) =>
         _comboOrderRepository.UpdateStatus(comboOrderId, newStatus);
+
+    public ComboOrder GenerateCaptcha(int comboOrderId, string? code) =>
+        _comboOrderRepository.GenerateCaptcha(comboOrderId, code);
+
+    public ComboOrder VerifyCaptcha(int comboOrderId, int customerId, string captchaCode) =>
+        _comboOrderRepository.VerifyCaptcha(comboOrderId, customerId, captchaCode);
 
     // ─── PRIVATE ─────────────────────────────────────────────────────────────
 

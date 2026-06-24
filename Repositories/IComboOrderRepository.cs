@@ -10,4 +10,6 @@ public interface IComboOrderRepository
     ComboOrder? GetOrderById(int comboOrderId);
     void AddOrder(ComboOrder order);
     void UpdateStatus(int comboOrderId, string newStatus);
+    ComboOrder GenerateCaptcha(int comboOrderId, string? code);
+    ComboOrder VerifyCaptcha(int comboOrderId, int customerId, string captchaCode);
 }

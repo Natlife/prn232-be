@@ -11,4 +11,6 @@ public class ComboOrderRepository : IComboOrderRepository
     public ComboOrder? GetOrderById(int comboOrderId)       => ComboOrderDAO.Instance.GetOrderById(comboOrderId);
     public void AddOrder(ComboOrder order)                  => ComboOrderDAO.Instance.AddOrder(order);
     public void UpdateStatus(int comboOrderId, string newStatus) => ComboOrderDAO.Instance.UpdateStatus(comboOrderId, newStatus);
+    public ComboOrder GenerateCaptcha(int comboOrderId, string? code) => ComboOrderDAO.Instance.GenerateCaptcha(comboOrderId, code);
+    public ComboOrder VerifyCaptcha(int comboOrderId, int customerId, string captchaCode) => ComboOrderDAO.Instance.VerifyCaptcha(comboOrderId, customerId, captchaCode);
 }

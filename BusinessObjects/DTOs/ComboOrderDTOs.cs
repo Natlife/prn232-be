@@ -31,8 +31,19 @@ public class ChatResponseDto
     public string Reply { get; set; } = null!;
     public List<SuggestedItemDto> SuggestedItems { get; set; } = new();
     public string? OrderLink { get; set; }
+    public ChatActionDto? Action { get; set; }
     public bool HasOrderSuggestion { get; set; }
     public string SessionId { get; set; } = null!;
+}
+
+public class ChatActionDto
+{
+    public string Type { get; set; } = null!;
+    public string TargetType { get; set; } = null!;
+    public int TargetId { get; set; }
+    public string Label { get; set; } = null!;
+    public string Url { get; set; } = null!;
+    public bool AutoOpenPopup { get; set; }
 }
 
 // ─── COMBO ORDER ─────────────────────────────────────────────────────────────
@@ -54,6 +65,10 @@ public class ComboOrderCreateDto
     [Required(ErrorMessage = "Số điện thoại không được trống")]
     [StringLength(20)]
     public string CustomerPhone { get; set; } = null!;
+
+    [Required(ErrorMessage = "Loại giao dịch là bắt buộc")]
+    [RegularExpression("Deposit|Buyout", ErrorMessage = "Loại giao dịch chỉ nhận Deposit hoặc Buyout")]
+    public string PurchaseType { get; set; } = "Buyout";
 
     [StringLength(255)]
     public string? ShippingAddress { get; set; }
@@ -90,4 +105,17 @@ public class ComboOrderStatusPatchDto
 {
     [Required]
     public string Status { get; set; } = null!;
+}
+
+public class ComboOrderCaptchaGenerateDto
+{
+    [StringLength(20)]
+    public string? Code { get; set; }
+}
+
+public class ComboOrderCaptchaVerifyDto
+{
+    [Required(ErrorMessage = "Mã captcha không được để trống")]
+    [StringLength(20)]
+    public string CaptchaCode { get; set; } = null!;
 }

@@ -32,7 +32,7 @@ namespace CarSalesManagementSystemAPI.Controllers;
 public class ComboOrdersController : ControllerBase
 {
     private static readonly HashSet<string> ValidStatuses =
-        new() { "Pending", "Confirmed", "Processing", "Completed", "Cancelled" };
+        new() { "Pending", "Deposited", "Completed", "Cancelled" };
 
     private readonly IComboOrderService _comboOrderService;
     private readonly ILogger<ComboOrdersController> _logger;
@@ -106,8 +106,8 @@ public class ComboOrdersController : ControllerBase
                 order.ComboOrderId, customerId, source);
 
             return CreatedAtAction(nameof(GetById), new { id = order.ComboOrderId },
-                new ApiResponse<object>(true, "Đặt hàng thành công. Nhân viên sẽ liên hệ xác nhận sớm.",
-                    new { order.ComboOrderId, order.TotalAmount, order.Status }));
+                new ApiResponse<object>(true, "Đơn hàng combo đã được tạo. Vui lòng liên hệ admin để nhận captcha xác thực.",
+                    new { order.ComboOrderId, order.TotalAmount, order.Status, order.PurchaseType, order.DepositAmount }));
         }
         catch (InvalidOperationException ex)
         {
@@ -133,6 +133,14 @@ public class ComboOrdersController : ControllerBase
             ? _comboOrderService.GetAllOrders()
             : _comboOrderService.GetOrdersByCustomerId(customerId);
 
+        if (!isAdmin)
+        {
+            foreach (var order in orders)
+            {
+                RedactSensitiveFieldsForCustomer(order);
+            }
+        }
+
         return Ok(orders);
     }
 
@@ -150,6 +158,11 @@ public class ComboOrdersController : ControllerBase
         var isAdmin = User.FindFirst(ClaimTypes.Role)?.Value == "Admin";
         if (!isAdmin && order.CustomerId != customerId)
             return Forbid();
+
+        if (!isAdmin)
+        {
+            RedactSensitiveFieldsForCustomer(order);
+        }
 
         return Ok(order);
     }
@@ -181,6 +194,79 @@ public class ComboOrdersController : ControllerBase
         }
     }
 
+    [HttpPost("{id:int}/generate-captcha")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult GenerateCaptcha(int id, [FromBody] ComboOrderCaptchaGenerateDto? dto)
+    {
+        try
+        {
+            var order = _comboOrderService.GenerateCaptcha(id, dto?.Code);
+            return Ok(new
+            {
+                success = true,
+                message = "Tạo captcha cho đơn combo thành công.",
+                data = new
+                {
+                    order.ComboOrderId,
+                    order.CaptchaCode,
+                    order.CaptchaGeneratedAt,
+                    order.PurchaseType,
+                    order.Status
+                }
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate captcha for ComboOrder {OrderId}", id);
+            return StatusCode(500, new { success = false, message = "Lỗi hệ thống." });
+        }
+    }
+
+    [HttpPost("{id:int}/verify-captcha")]
+    [Authorize]
+    public IActionResult VerifyCaptcha(int id, [FromBody] ComboOrderCaptchaVerifyDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var (customerId, _, extractError) = ExtractCallerIdentity();
+        if (extractError is not null) return Unauthorized(new { success = false, message = extractError });
+
+        try
+        {
+            var order = _comboOrderService.VerifyCaptcha(id, customerId, dto.CaptchaCode);
+            var successMessage = string.Equals(order.PurchaseType, "Deposit", StringComparison.OrdinalIgnoreCase)
+                ? "Xác thực captcha thành công. Đơn combo đã được ghi nhận đặt cọc."
+                : "Xác thực captcha thành công. Đơn combo đã được hoàn tất mua đứt.";
+
+            return Ok(new
+            {
+                success = true,
+                message = successMessage,
+                data = new
+                {
+                    order.ComboOrderId,
+                    order.Status,
+                    order.PurchaseType,
+                    order.CaptchaUsedAt
+                }
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to verify captcha for ComboOrder {OrderId}", id);
+            return StatusCode(500, new { success = false, message = "Lỗi hệ thống." });
+        }
+    }
+
     // ─── PRIVATE ─────────────────────────────────────────────────────────────
 
     private (int customerId, string? customerName, string? error) ExtractCallerIdentity()
@@ -194,5 +280,10 @@ public class ComboOrdersController : ControllerBase
                    ?? "Khách hàng";
 
         return (userId, name, null);
+    }
+
+    private static void RedactSensitiveFieldsForCustomer(ComboOrder order)
+    {
+        order.CaptchaCode = null;
     }
 }
