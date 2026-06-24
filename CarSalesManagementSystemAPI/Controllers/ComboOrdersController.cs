@@ -202,7 +202,9 @@ public class ComboOrdersController : ControllerBase
                 success = true,
                 message = captchaInfo.Stage == "deposit"
                     ? "Da tao captcha dat coc cho don combo."
-                    : "Da tao captcha mua dut lan hai cho don combo.",
+                    : string.Equals(order.PurchaseType, "Deposit", StringComparison.OrdinalIgnoreCase)
+                        ? "Da tao captcha mua dut lan hai cho don combo."
+                        : "Da tao captcha mua dut cho don combo.",
                 data = new
                 {
                     order.ComboOrderId,
@@ -293,8 +295,8 @@ public class ComboOrdersController : ControllerBase
 
     private static ComboOrderCaptchaInfoDto BuildActiveCaptchaInfo(BusinessObjects.Models.ComboOrder order)
     {
-        if (string.Equals(order.PurchaseType, "Deposit", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(order.Status, "Deposited", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(order.PurchaseType, "Deposit", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(order.Status, "Deposited", StringComparison.OrdinalIgnoreCase))
         {
             return new ComboOrderCaptchaInfoDto
             {
@@ -302,6 +304,17 @@ public class ComboOrdersController : ControllerBase
                 CaptchaCode = order.FinalCaptchaCode,
                 GeneratedAt = order.FinalCaptchaGeneratedAt,
                 IsUsed = order.IsFinalCaptchaUsed
+            };
+        }
+
+        if (string.Equals(order.PurchaseType, "Buyout", StringComparison.OrdinalIgnoreCase))
+        {
+            return new ComboOrderCaptchaInfoDto
+            {
+                Stage = "buyout",
+                CaptchaCode = order.CaptchaCode,
+                GeneratedAt = order.CaptchaGeneratedAt,
+                IsUsed = order.IsCaptchaUsed
             };
         }
 

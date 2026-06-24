@@ -112,7 +112,7 @@ public class ComboOrderDAO
         }
 
         var now = DateTime.Now;
-        if (stage == "deposit")
+        if (stage == "deposit" || stage == "buyout")
         {
             order.CaptchaCode = finalCode;
             order.CaptchaGeneratedAt = now;
@@ -167,7 +167,7 @@ public class ComboOrderDAO
         var normalizedType = NormalizePurchaseType(order.PurchaseType);
         if (normalizedType == "Buyout")
         {
-            VerifyPrimaryCaptcha(order, captchaCode);
+            VerifyBuyoutCaptcha(order, captchaCode);
             CompleteBuyout(context, order, now);
         }
         else if (order.Status == "Pending")
@@ -282,6 +282,32 @@ public class ComboOrderDAO
         }
 
         if (!string.Equals(order.CaptchaCode, captchaCode?.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Ma captcha khong hop le.");
+        }
+    }
+
+    private static void VerifyBuyoutCaptcha(ComboOrder order, string captchaCode)
+    {
+        if (!string.IsNullOrWhiteSpace(order.CaptchaCode))
+        {
+            VerifyPrimaryCaptcha(order, captchaCode);
+            return;
+        }
+
+        // Backward compatibility for buyout orders that were generated
+        // before the storage bug was fixed and ended up in FinalCaptchaCode.
+        if (order.IsFinalCaptchaUsed)
+        {
+            throw new InvalidOperationException("Captcha mua dut cua don combo nay da duoc su dung.");
+        }
+
+        if (string.IsNullOrWhiteSpace(order.FinalCaptchaCode))
+        {
+            throw new InvalidOperationException("Admin chua tao captcha cho don combo nay.");
+        }
+
+        if (!string.Equals(order.FinalCaptchaCode, captchaCode?.Trim(), StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException("Ma captcha khong hop le.");
         }
