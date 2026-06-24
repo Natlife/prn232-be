@@ -59,10 +59,11 @@ namespace CarSalesManagementSystemAPI.Controllers
             return Ok(new ApiResponse<MaintenancePackageDTO>(true, "Lấy chi tiết thành công", MapToDTO(package)));
         }
 
-        [HttpGet("/odata/MaintenancePackages/available")]
-        public ActionResult<IEnumerable<MaintenancePackage>> GetAvailableOData()
+        [HttpGet("/odata/MaintenancePackages")]
+        [EnableQuery]
+        public ActionResult<IQueryable<MaintenancePackage>> GetOData()
         {
-            return Ok(_service.GetAvailablePackages());
+            return Ok(_service.GetAllPackages().AsQueryable());
         }
 
         [HttpPost]
