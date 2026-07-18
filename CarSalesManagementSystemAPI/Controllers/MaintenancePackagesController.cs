@@ -20,31 +20,17 @@ namespace CarSalesManagementSystemAPI.Controllers
             _service = service;
         }
 
-        private MaintenancePackageDTO MapToDTO(MaintenancePackage p)
-        {
-            return new MaintenancePackageDTO 
-            {
-                PackageId = p.PackageId,
-                PackageName = p.PackageName,
-                Description = p.Description,
-                Price = p.Price,
-                EstimatedDuration = p.EstimatedDuration,
-                Status = p.Status,
-                CreatedAt = p.CreatedAt
-            };
-        }
-
         [HttpGet]
         public ActionResult<ApiResponse<IEnumerable<MaintenancePackageDTO>>> Get()
         {
-            var packages = _service.GetAllPackages().Select(MapToDTO).ToList();
+            var packages = _service.GetAllPackages().ToList();
             return Ok(new ApiResponse<IEnumerable<MaintenancePackageDTO>>(true, "Lấy danh sách thành công", packages));
         }
 
         [HttpGet("available")]
         public ActionResult<ApiResponse<IEnumerable<MaintenancePackageDTO>>> GetAvailable()
         {
-            var packages = _service.GetAvailablePackages().Select(MapToDTO).ToList();
+            var packages = _service.GetAvailablePackages().ToList();
             return Ok(new ApiResponse<IEnumerable<MaintenancePackageDTO>>(true, "Lấy danh sách thành công", packages));
         }
 
@@ -56,14 +42,14 @@ namespace CarSalesManagementSystemAPI.Controllers
             {
                 return NotFound(new ApiResponse<MaintenancePackageDTO>(false, "Không tìm thấy gói bảo dưỡng"));
             }
-            return Ok(new ApiResponse<MaintenancePackageDTO>(true, "Lấy chi tiết thành công", MapToDTO(package)));
+            return Ok(new ApiResponse<MaintenancePackageDTO>(true, "Lấy chi tiết thành công", package));
         }
 
         [HttpGet("/odata/MaintenancePackages")]
         [EnableQuery]
         public ActionResult<IQueryable<MaintenancePackage>> GetOData()
         {
-            return Ok(_service.GetAllPackages().AsQueryable());
+            return Ok(DataAccessObjects.MaintenancePackageDAO.Instance.GetAllPackages().AsQueryable());
         }
 
         [HttpPost]
@@ -72,18 +58,8 @@ namespace CarSalesManagementSystemAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ApiResponse<object>(false, "Dữ liệu không hợp lệ", ModelState));
 
-            var package = new MaintenancePackage
-            {
-                PackageName = dto.PackageName,
-                Description = dto.Description,
-                Price = dto.Price,
-                EstimatedDuration = dto.EstimatedDuration,
-                Status = dto.Status ?? "Available",
-                CreatedAt = System.DateTime.Now
-            };
-
-            _service.AddPackage(package);
-            return Ok(new ApiResponse<MaintenancePackageDTO>(true, "Thêm thành công", MapToDTO(package)));
+            _service.AddPackage(dto);
+            return Ok(new ApiResponse<string>(true, "Thêm thành công"));
         }
 
         [HttpPut("{id}")]
@@ -97,13 +73,7 @@ namespace CarSalesManagementSystemAPI.Controllers
             var package = _service.GetPackageById(id);
             if (package == null) return NotFound(new ApiResponse<string>(false, "Không tìm thấy"));
 
-            package.PackageName = dto.PackageName;
-            package.Description = dto.Description;
-            package.Price = dto.Price;
-            package.EstimatedDuration = dto.EstimatedDuration;
-            package.Status = dto.Status ?? "Available";
-
-            _service.UpdatePackage(package);
+            _service.UpdatePackage(dto);
             return Ok(new ApiResponse<string>(true, "Cập nhật thành công"));
         }
 
@@ -121,7 +91,7 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
             catch (System.Exception ex)
             {
-                return BadRequest(new ApiResponse<string>(false, $"Lỗi khi xóa: {ex.Message}"));
+                return BadRequest(new ApiResponse<string>(false, ex.Message));
             }
         }
     }

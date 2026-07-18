@@ -25,6 +25,11 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IMaintenancePackageService, MaintenancePackageService>();
             builder.Services.AddScoped<IMaintenanceAppointmentRepository, MaintenanceAppointmentRepository>();
             builder.Services.AddScoped<IMaintenanceAppointmentService, MaintenanceAppointmentService>();
+            builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+            builder.Services.AddScoped<IServiceService, ServiceService>();
+            builder.Services.AddScoped<ICustomerCarRepository, CustomerCarRepository>();
+            builder.Services.AddScoped<IAppointmentConsumedPartRepository, AppointmentConsumedPartRepository>();
+            builder.Services.AddScoped<IAppointmentConsumedPartService, AppointmentConsumedPartService>();
 
             // Car Showroom flow registrations
             builder.Services.AddScoped<ICarRepository, CarRepository>();
@@ -44,11 +49,11 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
             builder.Services.AddScoped<IDepositCaptchaRepository, DepositCaptchaRepository>();
             builder.Services.AddScoped<IDepositCaptchaService, DepositCaptchaService>();
-            builder.Services.AddHostedService<DepositCleanupService>();
+            // builder.Services.AddHostedService<DepositCleanupService>();
 
             // Combo Order stack
-            builder.Services.AddScoped<IComboOrderRepository, ComboOrderRepository>();
-            builder.Services.AddScoped<IComboOrderService, ComboOrderService>();
+            // builder.Services.AddScoped<IComboOrderRepository, ComboOrderRepository>();
+            // builder.Services.AddScoped<IComboOrderService, ComboOrderService>();
 
             // Chat proxy — delegates to Python RAG service
             builder.Services.AddHttpClient<IChatProxyService, ChatProxyService>();
@@ -141,10 +146,10 @@ namespace CarSalesManagementSystemAPI
             {
                 try
                 {
-                    System.Console.WriteLine("Applying Entity Framework Migrations...");
+                    System.Console.WriteLine("Entity Framework Migrations are managed manually via SQL script.");
                     using var context = new DataAccessObjects.CarShowroomContext();
-                    context.Database.Migrate();
-                    System.Console.WriteLine("EF Migrations applied successfully.");
+                    // context.Database.Migrate();
+                    // System.Console.WriteLine("EF Migrations applied successfully.");
 
                     // Check and apply custom deposit flow schema adjustments
                     var tableExists = false;
@@ -199,7 +204,17 @@ namespace CarSalesManagementSystemAPI
                             ALTER TABLE PartOrders
                                 ALTER COLUMN ShippingAddress NVARCHAR(255) NULL;
                         ");
-                        System.Console.WriteLine("Delivery schema check completed.");
+                        
+                        System.Console.WriteLine("Checking IsPaid column in MaintenanceAppointments...");
+                        context.Database.ExecuteSqlRaw(@"
+                            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('MaintenanceAppointments') AND name = 'IsPaid')
+                            BEGIN
+                                ALTER TABLE MaintenanceAppointments
+                                    ADD IsPaid BIT NOT NULL DEFAULT 0;
+                            END
+                        ");
+                        
+                        System.Console.WriteLine("Schema checks completed.");
                     }
                     catch (System.Exception ex)
                     {
