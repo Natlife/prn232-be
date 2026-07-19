@@ -95,5 +95,7 @@ namespace Services
                 throw new InvalidOperationException("Không thể xóa phụ tùng này vì đã tồn tại trong lịch sử đơn hàng.");
             }
         }
+
+        public IEnumerable<Part> GetPartsFiltered(int categoryId, int supplierId) => _repository.GetPartsFiltered(categoryId, supplierId);
     }
 }

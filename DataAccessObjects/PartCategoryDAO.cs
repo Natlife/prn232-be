@@ -38,5 +38,12 @@ namespace DataAccessObjects
             using var context = new CarShowroomContext();
             return context.PartCategories.SingleOrDefault(c => c.CategoryId == id);
         }
+
+        public void AddCategory(PartCategory category)
+        {
+            using var context = new CarShowroomContext();
+            context.PartCategories.Add(category);
+            context.SaveChanges();
+        }
     }
 }

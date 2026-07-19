@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BusinessObjects.Models;
+using BusinessObjects.DTOs;
 using Services;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.Authorization;
@@ -14,10 +15,12 @@ namespace CarSalesManagementSystemAPI.Controllers
     public class PartsController : ControllerBase
     {
         private readonly IPartService _partService;
+        private readonly IPartCompatibilityService _compatibilityService;
 
-        public PartsController(IPartService partService)
+        public PartsController(IPartService partService, IPartCompatibilityService compatibilityService)
         {
             _partService = partService;
+            _compatibilityService = compatibilityService;
         }
 
         [HttpGet]
@@ -131,6 +134,38 @@ namespace CarSalesManagementSystemAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        [HttpPost("check-compatibility")]
+        public IActionResult CheckCompatibility([FromBody] PartCompatibilityCheckDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                var result = _compatibilityService.CheckCompatibility(dto.LicensePlate, dto.PartCode);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        [HttpGet("filter")]
+        public ActionResult<IEnumerable<Part>> GetFilteredParts([FromQuery] int categoryId, [FromQuery] int supplierId)
+        {
+            try
+            {
+                var result = _partService.GetPartsFiltered(categoryId, supplierId);
+                return Ok(result);
             }
             catch (Exception ex)
             {

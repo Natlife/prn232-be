@@ -16,5 +16,7 @@ namespace Services
         public IEnumerable<PartCategory> GetAllCategories() => _repository.GetAllCategories();
 
         public PartCategory? GetCategoryById(int id) => _repository.GetCategoryById(id);
+
+        public void AddCategory(PartCategory category) => _repository.AddCategory(category);
     }
 }

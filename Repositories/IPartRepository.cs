@@ -10,5 +10,6 @@ namespace Repositories
         void AddPart(Part part);
         void UpdatePart(Part part);
         void DeletePart(int partId);
+        IEnumerable<Part> GetPartsFiltered(int categoryId, int supplierId);
     }
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessObjects.Migrations
 {
     [DbContext(typeof(CarShowroomContext))]
-    [Migration("20260602185232_SeedMaintenancePackages")]
-    partial class SeedMaintenancePackages
+    [Migration("20260601082940_TenMigration")]
+    partial class TenMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

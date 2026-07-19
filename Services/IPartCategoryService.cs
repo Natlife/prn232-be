@@ -7,5 +7,6 @@ namespace Services
     {
         IEnumerable<PartCategory> GetAllCategories();
         PartCategory? GetCategoryById(int id);
+        void AddCategory(PartCategory category);
     }
 }

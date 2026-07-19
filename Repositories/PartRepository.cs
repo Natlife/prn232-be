@@ -15,5 +15,7 @@ namespace Repositories
         public void UpdatePart(Part part) => PartDAO.Instance.UpdatePart(part);
 
         public void DeletePart(int partId) => PartDAO.Instance.DeletePart(partId);
+
+        public IEnumerable<Part> GetPartsFiltered(int categoryId, int supplierId) => PartDAO.Instance.GetPartsFiltered(categoryId, supplierId);
     }
 }

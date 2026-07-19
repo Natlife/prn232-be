@@ -64,5 +64,21 @@ namespace DataAccessObjects
                 context.SaveChanges();
             }
         }
+
+        public IEnumerable<Part> GetPartsFiltered(int categoryId, int supplierId)
+        {
+            using var context = new CarShowroomContext();
+            var query = context.Parts.Include(p => p.Category).Where(p => p.CategoryId == categoryId);
+            
+            if (supplierId > 0)
+            {
+                query = query.Where(p => 
+                    context.InventoryReceiptDetails.Any(d => d.PartId == p.PartId && d.Receipt.SupplierId == supplierId) ||
+                    !context.InventoryReceiptDetails.Any(d => d.PartId == p.PartId)
+                );
+            }
+            
+            return query.ToList();
+        }
     }
 }

@@ -9,5 +9,7 @@ namespace Repositories
         public IEnumerable<PartCategory> GetAllCategories() => PartCategoryDAO.Instance.GetAllCategories();
 
         public PartCategory? GetCategoryById(int id) => PartCategoryDAO.Instance.GetCategoryById(id);
+
+        public void AddCategory(PartCategory category) => PartCategoryDAO.Instance.AddCategory(category);
     }
 }

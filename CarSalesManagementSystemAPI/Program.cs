@@ -39,6 +39,14 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IPartService, PartService>();
             builder.Services.AddScoped<IPartOrderRepository, PartOrderRepository>();
             builder.Services.AddScoped<IPartOrderService, PartOrderService>();
+            
+            // New parts logistics flow registrations
+            builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+            builder.Services.AddScoped<ISupplierService, SupplierService>();
+            builder.Services.AddScoped<IPartCompatibilityRepository, PartCompatibilityRepository>();
+            builder.Services.AddScoped<IPartCompatibilityService, PartCompatibilityService>();
+            builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+            builder.Services.AddScoped<IInventoryService, InventoryService>();
             // Deposit / Purchase flow
             builder.Services.AddScoped<IPurchaseRequestRepository, PurchaseRequestRepository>();
             builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
@@ -77,6 +85,9 @@ namespace CarSalesManagementSystemAPI
 
             var depositCaptchas = modelBuilder.EntitySet<BusinessObjects.Models.DepositCaptcha>("DepositCaptchas");
             depositCaptchas.EntityType.HasKey(dc => dc.CaptchaId);
+
+            var odataSuppliers = modelBuilder.EntitySet<BusinessObjects.Models.Supplier>("Suppliers");
+            odataSuppliers.EntityType.HasKey(s => s.SupplierId);
 
             builder.Services.AddControllers(options =>
             {

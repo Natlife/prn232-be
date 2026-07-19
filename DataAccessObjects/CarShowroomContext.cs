@@ -48,6 +48,18 @@ public partial class CarShowroomContext : DbContext
 
     public virtual DbSet<ComboOrderItem> ComboOrderItems { get; set; }
 
+    public virtual DbSet<Supplier> Suppliers { get; set; }
+
+    public virtual DbSet<PartCompatibility> PartCompatibilities { get; set; }
+
+    public virtual DbSet<InventoryReceipt> InventoryReceipts { get; set; }
+
+    public virtual DbSet<InventoryReceiptDetail> InventoryReceiptDetails { get; set; }
+
+    public virtual DbSet<InventoryTransaction> InventoryTransactions { get; set; }
+
+    public virtual DbSet<CustomerCar> CustomerCars { get; set; }
+
     public override int SaveChanges()
     {
         TextEncodingNormalizer.NormalizePendingStrings(this);
