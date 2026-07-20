@@ -57,6 +57,44 @@ namespace CarSalesManagementSystemAPI.Controllers
             }
         }
 
+        [HttpGet("{key}/details-for-edit")]
+        public IActionResult GetDetailsForEdit(int key)
+        {
+            try
+            {
+                var part = _partService.GetPartById(key);
+                if (part == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy phụ tùng yêu cầu." });
+                }
+                bool canEditPartCode = !_partService.HasTransactions(key);
+                return Ok(new BusinessObjects.ViewModels.UpdatePartViewModel
+                {
+                    PartId = part.PartId,
+                    PartName = part.PartName,
+                    PartCode = part.PartCode,
+                    CategoryId = part.CategoryId,
+                    Brand = part.Brand,
+                    Price = part.Price,
+                    MinStockLevel = part.MinStockLevel,
+                    MaxStockLevel = part.MaxStockLevel,
+                    UnitOfMeasure = part.UnitOfMeasure ?? "Cái",
+                    WarehouseLocation = part.WarehouseLocation,
+                    WarrantyMonths = part.WarrantyMonths,
+                    Description = part.Description,
+                    ImageUrl = part.ImageUrl,
+                    Status = part.Status,
+                    CurrentQuantity = part.Quantity,
+                    CurrentExpiredAt = part.ExpiredAt,
+                    CanEditPartCode = canEditPartCode
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public IActionResult Post([FromBody] Part part)
@@ -83,11 +121,11 @@ namespace CarSalesManagementSystemAPI.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public IActionResult Put(int id, [FromBody] Part part)
+        public IActionResult Put(int id, [FromBody] BusinessObjects.ViewModels.UpdatePartViewModel model)
         {
             try
             {
-                if (id != part.PartId)
+                if (id != model.PartId)
                 {
                     return BadRequest(new { message = "Mã ID phụ tùng không khớp." });
                 }
@@ -96,15 +134,14 @@ namespace CarSalesManagementSystemAPI.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var existing = _partService.GetPartById(id);
-                if (existing == null)
+                int? adminId = null;
+                var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int parsedId))
                 {
-                    return NotFound(new { message = "Không tìm thấy phụ tùng cần cập nhật." });
+                    adminId = parsedId;
                 }
-                
-                part.CreatedAt = existing.CreatedAt;
 
-                _partService.UpdatePart(part);
+                _partService.UpdatePartMetadata(model, adminId);
                 return Ok(new { success = true, message = "Cập nhật phụ tùng thành công." });
             }
             catch (InvalidOperationException ex)
@@ -116,6 +153,7 @@ namespace CarSalesManagementSystemAPI.Controllers
                 return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
             }
         }
+
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]

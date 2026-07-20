@@ -39,6 +39,7 @@ namespace DataAccessObjects
         {
             using var context = new CarShowroomContext();
             return context.InventoryTransactions
+                .Include(t => t.Staff)
                 .Where(t => t.PartId == partId)
                 .OrderByDescending(t => t.TransactionDate)
                 .ToList();
@@ -84,7 +85,7 @@ namespace DataAccessObjects
                     part.Quantity += detail.Quantity;
                     
                     // Update ExpiredAt if provided for this part
-                    if (partExpirations.TryGetValue(part.PartId, out var expDate) && expDate.HasValue)
+                    if (partExpirations.TryGetValue(part.PartId, out var expDate))
                     {
                         part.ExpiredAt = expDate;
                     }

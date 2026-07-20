@@ -24,46 +24,17 @@ namespace CarSalesManagementSystemAPI.Controllers
             _service = service;
         }
 
-        private MaintenanceAppointmentDTO MapToDTO(MaintenanceAppointment a)
-        {
-            return new MaintenanceAppointmentDTO 
-            {
-                AppointmentId = a.AppointmentId,
-                CustomerId = a.CustomerId,
-                PackageId = a.PackageId,
-                CustomerName = a.CustomerName,
-                CustomerPhone = a.CustomerPhone,
-                CustomerEmail = a.CustomerEmail,
-                CarName = a.CarName,
-                LicensePlate = a.LicensePlate,
-                AppointmentDate = a.AppointmentDate,
-                AppointmentTime = a.AppointmentTime,
-                Note = a.Note,
-                Status = a.Status,
-                CreatedAt = a.CreatedAt,
-                Package = a.Package != null ? new MaintenancePackageDTO 
-                {
-                    PackageId = a.Package.PackageId,
-                    PackageName = a.Package.PackageName,
-                    Description = a.Package.Description,
-                    Price = a.Package.Price,
-                    EstimatedDuration = a.Package.EstimatedDuration,
-                    Status = a.Package.Status
-                } : null
-            };
-        }
-
         [HttpGet]
         public ActionResult<ApiResponse<IEnumerable<MaintenanceAppointmentDTO>>> Get()
         {
-            var data = _service.GetAllAppointments().Select(MapToDTO).ToList();
+            var data = _service.GetAllAppointments().ToList();
             return Ok(new ApiResponse<IEnumerable<MaintenanceAppointmentDTO>>(true, "Success", data));
         }
 
         [HttpGet("customer/{customerId}")]
         public ActionResult<ApiResponse<IEnumerable<MaintenanceAppointmentDTO>>> GetByCustomer(int customerId)
         {
-            var data = _service.GetAppointmentsByCustomerId(customerId).Select(MapToDTO).ToList();
+            var data = _service.GetAppointmentsByCustomerId(customerId).ToList();
             return Ok(new ApiResponse<IEnumerable<MaintenanceAppointmentDTO>>(true, "Success", data));
         }
 
@@ -75,32 +46,52 @@ namespace CarSalesManagementSystemAPI.Controllers
             {
                 return NotFound(new ApiResponse<MaintenanceAppointmentDTO>(false, "Không tìm thấy"));
             }
-            return Ok(new ApiResponse<MaintenanceAppointmentDTO>(true, "Success", MapToDTO(appointment)));
+            return Ok(new ApiResponse<MaintenanceAppointmentDTO>(true, "Success", appointment));
         }
 
-        [HttpPost]
-        public ActionResult<ApiResponse<MaintenanceAppointmentDTO>> Post([FromBody] MaintenanceAppointmentDTO dto)
+        [HttpPost("{customerId}")]
+        public ActionResult<ApiResponse<MaintenanceAppointmentDTO>> Post(int customerId, [FromBody] CreateAppointmentDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(new ApiResponse<object>(false, "Dữ liệu không hợp lệ", ModelState));
 
-            var appointment = new MaintenanceAppointment
+            try
             {
-                CustomerId = dto.CustomerId,
-                PackageId = dto.PackageId,
-                CustomerName = dto.CustomerName,
-                CustomerPhone = dto.CustomerPhone,
-                CustomerEmail = dto.CustomerEmail,
-                CarName = dto.CarName,
-                LicensePlate = dto.LicensePlate,
-                AppointmentDate = dto.AppointmentDate,
-                AppointmentTime = dto.AppointmentTime,
-                Note = dto.Note,
-                Status = dto.Status ?? "Pending"
-            };
+                var appointment = _service.CreateAppointment(customerId, dto);
+                return Ok(new ApiResponse<MaintenanceAppointmentDTO>(true, "Thêm thành công", appointment));
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(false, ex.Message));
+            }
+        }
 
-            _service.CreateAppointment(appointment);
-            
-            return Ok(new ApiResponse<MaintenanceAppointmentDTO>(true, "Thêm thành công", MapToDTO(appointment)));
+        [HttpPost("create-with-details")]
+        public ActionResult<ApiResponse<MaintenanceAppointmentDTO>> CreateWithDetails([FromBody] CreateAppointmentDTO dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(new ApiResponse<object>(false, "Dữ liệu không hợp lệ", ModelState));
+
+            try
+            {
+                var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                             ?? User.FindFirst("sub")?.Value
+                             ?? User.FindFirst("nameid")?.Value;
+                             
+                int customerId = dto.CustomerId ?? 1; // Default guest fallback ID if not provided in DTO
+                
+                if (dto.CustomerId == null && !string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int parsedId))
+                {
+                    customerId = parsedId;
+                }
+
+                var appointment = _service.CreateAppointment(customerId, dto);
+                return Ok(new ApiResponse<MaintenanceAppointmentDTO>(true, "Thêm thành công", appointment));
+            }
+            catch (System.Exception ex)
+            {
+                var msg = ex.Message;
+                if (ex.InnerException != null) msg += " INNER: " + ex.InnerException.Message;
+                return BadRequest(new ApiResponse<string>(false, msg));
+            }
         }
 
         [HttpPut("{id}/status")]
@@ -108,6 +99,25 @@ namespace CarSalesManagementSystemAPI.Controllers
         {
             _service.UpdateAppointmentStatus(id, req.Status, req.Reason);
             return Ok(new ApiResponse<string>(true, "Cập nhật thành công"));
+        }
+
+        [HttpPut("{id}/pay")]
+        public ActionResult<ApiResponse<string>> UpdatePaymentStatus(int id)
+        {
+            _service.UpdateAppointmentPaymentStatus(id, true);
+            return Ok(new ApiResponse<string>(true, "Xác nhận thanh toán thành công"));
+        }
+
+        public class UpdateExtraFeeRequest
+        {
+            public decimal ExtraFee { get; set; }
+        }
+
+        [HttpPut("{id}/extrafee")]
+        public ActionResult<ApiResponse<string>> UpdateExtraFee(int id, [FromBody] UpdateExtraFeeRequest req)
+        {
+            _service.UpdateAppointmentExtraFee(id, req.ExtraFee);
+            return Ok(new ApiResponse<string>(true, "Lưu phí phát sinh thành công"));
         }
 
         [HttpDelete("{id}")]

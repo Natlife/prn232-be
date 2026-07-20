@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BusinessObjects.Models;
+using BusinessObjects.ViewModels;
 
 namespace Services
 {
@@ -9,7 +10,10 @@ namespace Services
         Part? GetPartById(int partId);
         void AddPart(Part part);
         void UpdatePart(Part part);
+        void UpdatePartMetadata(UpdatePartViewModel model, int? adminId);
+        bool HasTransactions(int partId);
         void DeletePart(int partId);
         IEnumerable<Part> GetPartsFiltered(int categoryId, int supplierId);
     }
 }
+

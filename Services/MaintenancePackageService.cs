@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BusinessObjects.Models;
+using BusinessObjects.DTOs;
 using Repositories;
 
 namespace Services
@@ -14,17 +16,94 @@ namespace Services
             _repository = repository;
         }
 
-        public IEnumerable<MaintenancePackage> GetAllPackages() => _repository.GetAllPackages();
+        public IEnumerable<MaintenancePackageDTO> GetAllPackages() 
+        {
+            var packages = _repository.GetAllPackages();
+            return packages.Select(MapToDTO);
+        }
 
-        public IEnumerable<MaintenancePackage> GetAvailablePackages() 
-            => _repository.GetAllPackages().Where(p => p.Status == "Available");
+        public IEnumerable<MaintenancePackageDTO> GetAvailablePackages() 
+        {
+            var packages = _repository.GetAvailablePackages();
+            return packages.Select(MapToDTO);
+        }
 
-        public MaintenancePackage GetPackageById(int packageId) => _repository.GetPackageById(packageId);
+        public MaintenancePackageDTO GetPackageById(int packageId) 
+        {
+            var package = _repository.GetPackageById(packageId);
+            if (package == null) return null;
+            return MapToDTO(package);
+        }
 
-        public void AddPackage(MaintenancePackage package) => _repository.AddPackage(package);
+        public void AddPackage(MaintenancePackageDTO packageDto) 
+        {
+            var package = new MaintenancePackage
+            {
+                PackageName = packageDto.PackageName,
+                Description = packageDto.Description,
+                PackagePrice = packageDto.PackagePrice,
+                Status = string.IsNullOrWhiteSpace(packageDto.Status) ? "Available" : packageDto.Status,
+                CreatedAt = DateTime.Now
+            };
 
-        public void UpdatePackage(MaintenancePackage package) => _repository.UpdatePackage(package);
+            if (packageDto.ServiceIds != null && packageDto.ServiceIds.Any())
+            {
+                foreach (var serviceId in packageDto.ServiceIds)
+                {
+                    package.PackageServices.Add(new PackageService
+                    {
+                        ServiceId = serviceId,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+            }
+
+            _repository.AddPackage(package);
+        }
+
+        public void UpdatePackage(MaintenancePackageDTO packageDto) 
+        {
+            var package = new MaintenancePackage
+            {
+                PackageId = packageDto.PackageId,
+                PackageName = packageDto.PackageName,
+                Description = packageDto.Description,
+                PackagePrice = packageDto.PackagePrice,
+                Status = string.IsNullOrWhiteSpace(packageDto.Status) ? "Available" : packageDto.Status,
+                UpdatedAt = DateTime.Now
+            };
+
+            if (packageDto.ServiceIds != null)
+            {
+                _repository.UpdatePackageWithServices(package, packageDto.ServiceIds);
+            }
+            else
+            {
+                _repository.UpdatePackage(package);
+            }
+        }
 
         public void DeletePackage(int packageId) => _repository.DeletePackage(packageId);
+
+        private MaintenancePackageDTO MapToDTO(MaintenancePackage package)
+        {
+            return new MaintenancePackageDTO
+            {
+                PackageId = package.PackageId,
+                PackageName = package.PackageName,
+                Description = package.Description,
+                PackagePrice = package.PackagePrice,
+                Status = package.Status,
+                CreatedAt = package.CreatedAt,
+                Services = package.PackageServices.Select(ps => new ServiceSummaryDTO
+                {
+                    ServiceId = ps.Service.ServiceId,
+                    ServiceName = ps.Service.ServiceName,
+                    BasePrice = ps.Service.BasePrice,
+                    EstimatedDurationMinutes = ps.Service.EstimatedDurationMinutes
+                }).ToList(),
+                ServiceIds = package.PackageServices.Select(ps => ps.ServiceId).ToList()
+            };
+        }
     }
 }

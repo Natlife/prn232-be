@@ -32,6 +32,18 @@ public partial class CarShowroomContext : DbContext
 
     public virtual DbSet<MaintenancePackage> MaintenancePackages { get; set; }
 
+    public virtual DbSet<Service> Services { get; set; }
+
+    public virtual DbSet<PackageService> PackageServices { get; set; }
+
+    public virtual DbSet<CustomerCar> CustomerCars { get; set; }
+
+    public virtual DbSet<AppointmentDetail> AppointmentDetails { get; set; }
+
+    public virtual DbSet<AppointmentConsumedPart> AppointmentConsumedParts { get; set; }
+
+    public virtual DbSet<ServiceRequiredPart> ServiceRequiredParts { get; set; }
+
     public virtual DbSet<Part> Parts { get; set; }
 
     public virtual DbSet<PartCategory> PartCategories { get; set; }
@@ -57,8 +69,6 @@ public partial class CarShowroomContext : DbContext
     public virtual DbSet<InventoryReceiptDetail> InventoryReceiptDetails { get; set; }
 
     public virtual DbSet<InventoryTransaction> InventoryTransactions { get; set; }
-
-    public virtual DbSet<CustomerCar> CustomerCars { get; set; }
 
     public override int SaveChanges()
     {
@@ -309,43 +319,43 @@ public partial class CarShowroomContext : DbContext
 
         modelBuilder.Entity<MaintenanceAppointment>(entity =>
         {
-            entity.HasKey(e => e.AppointmentId).HasName("PK__Maintena__8ECDFCC2C25D6E2B");
+            entity.HasKey(e => e.AppointmentId);
 
-            entity.Property(e => e.CarName).HasMaxLength(150);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.ExpiredAt).HasColumnType("datetime");
             entity.Property(e => e.CustomerEmail).HasMaxLength(100);
             entity.Property(e => e.CustomerName).HasMaxLength(100);
             entity.Property(e => e.CustomerPhone).HasMaxLength(20);
-            entity.Property(e => e.LicensePlate).HasMaxLength(30);
             entity.Property(e => e.Note).HasMaxLength(1000);
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasDefaultValue("Pending");
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.MaintenanceAppointments)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_MaintenanceAppointments_AppUsers");
 
-            entity.HasOne(d => d.Package).WithMany(p => p.MaintenanceAppointments)
-                .HasForeignKey(d => d.PackageId)
+            entity.HasOne(d => d.CustomerCar).WithMany(p => p.MaintenanceAppointments)
+                .HasForeignKey(d => d.CustomerCarId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_MaintenanceAppointments_Packages");
+                .HasConstraintName("FK_MaintenanceAppointments_CustomerCars");
         });
 
         modelBuilder.Entity<MaintenancePackage>(entity =>
         {
-            entity.HasKey(e => e.PackageId).HasName("PK__Maintena__322035CCFD54E0FD");
+            entity.HasKey(e => e.PackageId);
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.PackageName).HasMaxLength(150);
-            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PackagePrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasDefaultValue("Available");
@@ -354,33 +364,181 @@ public partial class CarShowroomContext : DbContext
                 new MaintenancePackage
                 {
                     PackageId = 1,
-                    PackageName = "B?o du?ng Ti?u chu?n",
-                    Description = "Ki?m tra to?n di?n 30 di?m, thay nh?t d?ng co v? l?c nh?t, ki?m tra h? th?ng phanh v? b? sung nu?c l?m m?t. Ph? h?p cho b?o du?ng d?nh k? m?i 5.000 km.",
-                    Price = 1500000,
-                    EstimatedDuration = 2,
+                    PackageName = "Bao duong Dinh ky Tieu chuan 10.000km",
+                    Description = "Goi bao duong co ban giup xe van hanh tron tru bao gom thay dau, kiem tra phanh va ra soat loi.",
+                    PackagePrice = 1200000,
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
                 },
                 new MaintenancePackage
                 {
                     PackageId = 2,
-                    PackageName = "B?o du?ng To?n di?n VIP",
-                    Description = "Ki?m tra h? th?ng di?n t? b?ng m?y chuy?n d?ng, v? sinh bu?ng d?t, v? sinh kim phun, d?o l?p, c?n b?ng d?ng v? thay to?n b? ch?t l?ng (d?u m?y, d?u phanh, nu?c l?m m?t).",
-                    Price = 4500000,
-                    EstimatedDuration = 4,
-                    Status = "Available",
-                    CreatedAt = new DateTime(2025, 1, 1)
-                },
-                new MaintenancePackage
-                {
-                    PackageId = 3,
-                    PackageName = "Ki?m tra Xe tru?c Chuy?n di",
-                    Description = "Ki?m tra ?p su?t l?p, d? m?n l?p, h? th?ng chi?u s?ng, h? th?ng phanh, g?t mua v? b?nh ?c quy d? d?m b?o an to?n tuy?t d?i cho chuy?n di d?i.",
-                    Price = 500000,
-                    EstimatedDuration = 1,
+                    PackageName = "Cham soc Dieu hoa VIP don he",
+                    Description = "Lam lanh sau, diet khuan dan lanh dieu hoa noi that.",
+                    PackagePrice = 950000,
                     Status = "Available",
                     CreatedAt = new DateTime(2025, 1, 1)
                 }
+            );
+        });
+
+        modelBuilder.Entity<Service>(entity =>
+        {
+            entity.HasKey(e => e.ServiceId);
+
+            entity.Property(e => e.ServiceName).HasMaxLength(150);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.BasePrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.EstimatedDurationMinutes).HasDefaultValue(30);
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasDefaultValue("Available");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+            entity.HasData(
+                new Service { ServiceId = 1, ServiceName = "Thay dau dong co & Coc loc dau", Description = "Xa dau cu, thay loc dau chinh hang, cham dau dong co Castrol moi phu hop.", BasePrice = 200000, EstimatedDurationMinutes = 30, Status = "Available", CreatedAt = new DateTime(2025, 1, 1) },
+                new Service { ServiceId = 2, ServiceName = "Can chinh thuoc lai do chum lop", Description = "Su dung may quet laser 3D de can chinh do chum banh xe va can bang dong.", BasePrice = 450000, EstimatedDurationMinutes = 45, Status = "Available", CreatedAt = new DateTime(2025, 1, 1) },
+                new Service { ServiceId = 3, ServiceName = "Ve sinh dan lanh dieu hoa noi that", Description = "Su dung may noi soi chuyen dung lam sach bui ban dan lanh khong can thao taplo.", BasePrice = 600000, EstimatedDurationMinutes = 60, Status = "Available", CreatedAt = new DateTime(2025, 1, 1) },
+                new Service { ServiceId = 4, ServiceName = "Kiem tra toan dien 30 hang muc ky thuat", Description = "Kiem tra may gam, phanh, lop, dien than xe, nuoc lam mat, chan doan loi bang may chuyen dung.", BasePrice = 150000, EstimatedDurationMinutes = 40, Status = "Available", CreatedAt = new DateTime(2025, 1, 1) }
+            );
+        });
+
+        modelBuilder.Entity<PackageService>(entity =>
+        {
+            entity.HasKey(e => new { e.PackageId, e.ServiceId });
+
+            entity.Property(e => e.Notes).HasMaxLength(255);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Package).WithMany(p => p.PackageServices)
+                .HasForeignKey(d => d.PackageId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PackageServices_Packages");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.PackageServices)
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PackageServices_Services");
+
+            entity.HasData(
+                new PackageService { PackageId = 1, ServiceId = 1, CreatedAt = new DateTime(2025, 1, 1) },
+                new PackageService { PackageId = 1, ServiceId = 4, CreatedAt = new DateTime(2025, 1, 1) },
+                new PackageService { PackageId = 2, ServiceId = 3, CreatedAt = new DateTime(2025, 1, 1) },
+                new PackageService { PackageId = 2, ServiceId = 4, CreatedAt = new DateTime(2025, 1, 1) }
+            );
+        });
+
+        modelBuilder.Entity<CustomerCar>(entity =>
+        {
+            entity.HasKey(e => e.CustomerCarId);
+
+            entity.HasIndex(e => e.LicensePlate).IsUnique();
+            entity.HasIndex(e => e.VIN).IsUnique();
+
+            entity.Property(e => e.Model).HasMaxLength(100);
+            entity.Property(e => e.VIN).HasMaxLength(50);
+            entity.Property(e => e.LicensePlate).HasMaxLength(30);
+            entity.Property(e => e.Color).HasMaxLength(50);
+            entity.Property(e => e.ExpiredAt).HasColumnType("datetime");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Customer).WithMany(p => p.CustomerCars)
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CustomerCars_AppUsers");
+
+            entity.HasOne(d => d.Brand).WithMany()
+                .HasForeignKey(d => d.BrandId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CustomerCars_CarBrands");
+        });
+
+        modelBuilder.Entity<AppointmentDetail>(entity =>
+        {
+            entity.HasKey(e => e.AppointmentDetailId);
+
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Quantity).HasDefaultValue(1);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Appointment).WithMany(p => p.AppointmentDetails)
+                .HasForeignKey(d => d.AppointmentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_AppointmentDetails_Appointments");
+
+            entity.HasOne(d => d.Package).WithMany(p => p.AppointmentDetails)
+                .HasForeignKey(d => d.PackageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentDetails_Packages");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.AppointmentDetails)
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentDetails_Services");
+        });
+
+        modelBuilder.Entity<AppointmentConsumedPart>(entity =>
+        {
+            entity.HasKey(e => e.ConsumedPartId);
+
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.IsIncurred).HasDefaultValue(false);
+            entity.Property(e => e.ApprovedByCustomer).HasDefaultValue(true);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Appointment).WithMany(p => p.ConsumedParts)
+                .HasForeignKey(d => d.AppointmentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_AppointmentConsumedParts_Appointments");
+
+            entity.HasOne(d => d.AppointmentDetail).WithMany(p => p.ConsumedParts)
+                .HasForeignKey(d => d.AppointmentDetailId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentConsumedParts_Details");
+
+            entity.HasOne(d => d.Part).WithMany(p => p.AppointmentConsumedParts)
+                .HasForeignKey(d => d.PartId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentConsumedParts_Parts");
+        });
+
+
+
+        modelBuilder.Entity<ServiceRequiredPart>(entity =>
+        {
+            entity.HasKey(e => new { e.ServiceId, e.PartId });
+
+            entity.Property(e => e.QuantityRequired).HasDefaultValue(1);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.ServiceRequiredParts)
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ServiceRequiredParts_Services");
+
+            entity.HasOne(d => d.Part).WithMany(p => p.ServiceRequiredParts)
+                .HasForeignKey(d => d.PartId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ServiceRequiredParts_Parts");
+
+            entity.HasData(
+                new ServiceRequiredPart { ServiceId = 1, PartId = 3, QuantityRequired = 4, CreatedAt = new DateTime(2025, 1, 1) }
             );
         });
 
@@ -407,6 +565,15 @@ public partial class CarShowroomContext : DbContext
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Parts_PartCategories");
+
+            entity.HasOne(d => d.CreatedUserNavigation).WithMany()
+                .HasForeignKey(d => d.CreatedUser)
+                .HasConstraintName("FK_Parts_CreatedUser");
+
+            entity.HasOne(d => d.UpdatedUserNavigation).WithMany()
+                .HasForeignKey(d => d.UpdatedUser)
+                .HasConstraintName("FK_Parts_UpdatedUser");
+
 
             entity.HasData(
                 new Part
