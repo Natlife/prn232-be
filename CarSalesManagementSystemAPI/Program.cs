@@ -61,8 +61,8 @@ namespace CarSalesManagementSystemAPI
             // builder.Services.AddHostedService<DepositCleanupService>();
 
             // Combo Order stack
-            // builder.Services.AddScoped<IComboOrderRepository, ComboOrderRepository>();
-            // builder.Services.AddScoped<IComboOrderService, ComboOrderService>();
+            builder.Services.AddScoped<Repositories.IComboOrderRepository, Repositories.ComboOrderRepository>();
+            builder.Services.AddScoped<Services.IComboOrderService, Services.ComboOrderService>();
 
             // Chat proxy — delegates to Python RAG service
             builder.Services.AddHttpClient<IChatProxyService, ChatProxyService>();

@@ -18,5 +18,9 @@ namespace Services
         public PartCategory? GetCategoryById(int id) => _repository.GetCategoryById(id);
 
         public void AddCategory(PartCategory category) => _repository.AddCategory(category);
+
+        public void UpdateCategory(PartCategory category) => _repository.UpdateCategory(category);
+
+        public void DeleteCategory(int id) => _repository.DeleteCategory(id);
     }
 }

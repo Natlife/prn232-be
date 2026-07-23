@@ -35,6 +35,17 @@ namespace Services
             return MapToDTO(package);
         }
 
+        private static string NormalizeStatus(string? status)
+        {
+            if (string.IsNullOrWhiteSpace(status)) return "Available";
+            if (status.Equals("Unavailable", StringComparison.OrdinalIgnoreCase) ||
+                status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Inactive";
+            }
+            return "Available";
+        }
+
         public void AddPackage(MaintenancePackageDTO packageDto) 
         {
             var package = new MaintenancePackage
@@ -42,7 +53,7 @@ namespace Services
                 PackageName = packageDto.PackageName,
                 Description = packageDto.Description,
                 PackagePrice = packageDto.PackagePrice,
-                Status = string.IsNullOrWhiteSpace(packageDto.Status) ? "Available" : packageDto.Status,
+                Status = NormalizeStatus(packageDto.Status),
                 CreatedAt = DateTime.Now
             };
 
@@ -69,7 +80,7 @@ namespace Services
                 PackageName = packageDto.PackageName,
                 Description = packageDto.Description,
                 PackagePrice = packageDto.PackagePrice,
-                Status = string.IsNullOrWhiteSpace(packageDto.Status) ? "Available" : packageDto.Status,
+                Status = NormalizeStatus(packageDto.Status),
                 UpdatedAt = DateTime.Now
             };
 

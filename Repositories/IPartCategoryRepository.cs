@@ -8,5 +8,7 @@ namespace Repositories
         IEnumerable<PartCategory> GetAllCategories();
         PartCategory? GetCategoryById(int id);
         void AddCategory(PartCategory category);
+        void UpdateCategory(PartCategory category);
+        void DeleteCategory(int id);
     }
 }

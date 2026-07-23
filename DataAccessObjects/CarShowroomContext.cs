@@ -70,6 +70,14 @@ public partial class CarShowroomContext : DbContext
 
     public virtual DbSet<InventoryTransaction> InventoryTransactions { get; set; }
 
+    public virtual DbSet<MasterInvoice> MasterInvoices { get; set; }
+
+    public virtual DbSet<PartInvoice> PartInvoices { get; set; }
+
+    public virtual DbSet<ServiceInvoice> ServiceInvoices { get; set; }
+
+    public virtual DbSet<CarInvoice> CarInvoices { get; set; }
+
     public override int SaveChanges()
     {
         TextEncodingNormalizer.NormalizePendingStrings(this);
@@ -566,11 +574,11 @@ public partial class CarShowroomContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Parts_PartCategories");
 
-            entity.HasOne(d => d.CreatedUserNavigation).WithMany()
+            entity.HasOne(d => d.CreatedUserNavigation).WithMany(p => p.CreatedParts)
                 .HasForeignKey(d => d.CreatedUser)
                 .HasConstraintName("FK_Parts_CreatedUser");
 
-            entity.HasOne(d => d.UpdatedUserNavigation).WithMany()
+            entity.HasOne(d => d.UpdatedUserNavigation).WithMany(p => p.UpdatedParts)
                 .HasForeignKey(d => d.UpdatedUser)
                 .HasConstraintName("FK_Parts_UpdatedUser");
 
@@ -693,7 +701,7 @@ public partial class CarShowroomContext : DbContext
         {
             entity.HasKey(e => e.OrderDetailId).HasName("PK__PartOrde__D3B9D36CC532A696");
 
-            entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 2)").ValueGeneratedOnAddOrUpdate();
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.Order).WithMany(p => p.PartOrderDetails)

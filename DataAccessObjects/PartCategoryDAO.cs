@@ -42,8 +42,33 @@ namespace DataAccessObjects
         public void AddCategory(PartCategory category)
         {
             using var context = new CarShowroomContext();
+            category.CreatedAt = DateTime.Now;
             context.PartCategories.Add(category);
             context.SaveChanges();
+        }
+
+        public void UpdateCategory(PartCategory category)
+        {
+            using var context = new CarShowroomContext();
+            var existing = context.PartCategories.SingleOrDefault(c => c.CategoryId == category.CategoryId);
+            if (existing != null)
+            {
+                existing.CategoryName = category.CategoryName;
+                existing.Description = category.Description;
+                existing.UpdatedAt = DateTime.Now;
+                context.SaveChanges();
+            }
+        }
+
+        public void DeleteCategory(int id)
+        {
+            using var context = new CarShowroomContext();
+            var category = context.PartCategories.SingleOrDefault(c => c.CategoryId == id);
+            if (category != null)
+            {
+                context.PartCategories.Remove(category);
+                context.SaveChanges();
+            }
         }
     }
 }

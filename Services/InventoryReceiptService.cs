@@ -36,13 +36,29 @@ namespace Services
                     return ServiceResult<int>.Fail("Phải có ít nhất một dòng trong phiếu nhập.");
                 }
 
+                // Auto-fallback SupplierId if 0 for existing part rows
+                int defaultSupId = request.SupplierId ?? 0;
+                if (defaultSupId <= 0)
+                {
+                    var firstSup = await context.Suppliers.FirstOrDefaultAsync(s => s.Status == "Active", cancellationToken);
+                    if (firstSup != null) defaultSupId = firstSup.SupplierId;
+                }
+
+                foreach (var item in request.Items)
+                {
+                    if (!item.SupplierId.HasValue || item.SupplierId.Value <= 0)
+                    {
+                        item.SupplierId = defaultSupId;
+                    }
+                }
+
                 // Group items by SupplierId
                 var itemsBySupplier = request.Items.GroupBy(x => x.SupplierId).ToList();
                 int firstReceiptId = 0;
 
                 foreach (var group in itemsBySupplier)
                 {
-                    int supplierId = group.Key;
+                    int supplierId = group.Key.GetValueOrDefault();
                     if (supplierId <= 0)
                     {
                         return ServiceResult<int>.Fail("Vui lòng chọn nhà cung cấp cho mỗi dòng.");
@@ -156,6 +172,7 @@ namespace Services
                                 WarehouseLocation = item.NewPart.WarehouseLocation?.Trim(),
                                 WarrantyMonths = item.NewPart.WarrantyMonths,
                                 Description = item.NewPart.Description?.Trim(),
+                                ImageUrl = item.NewPart.ImageUrl?.Trim(),
                                 ExpiredAt = item.ExpiredAt,
                                 Status = "OutOfStock",
                                 CreatedAt = DateTime.Now,

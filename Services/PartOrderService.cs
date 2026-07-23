@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BusinessObjects.Common;
 using BusinessObjects.Models;
 using DataAccessObjects;
 using Microsoft.EntityFrameworkCore;
@@ -25,20 +26,39 @@ namespace Services
 
         public void AddOrder(PartOrder order)
         {
-            if (string.IsNullOrEmpty(order.DeliveryMethod))
+            // Normalize Delivery Method
+            if (string.Equals(order.DeliveryMethod, "HomeDelivery", StringComparison.OrdinalIgnoreCase))
             {
-                order.DeliveryMethod = "Pickup";
+                order.DeliveryMethod = DeliveryMethods.Shipping;
+            }
+            else if (string.IsNullOrEmpty(order.DeliveryMethod))
+            {
+                order.DeliveryMethod = DeliveryMethods.Pickup;
             }
 
-            if (order.DeliveryMethod == "HomeDelivery" && string.IsNullOrWhiteSpace(order.ShippingAddress))
+            // Validate Delivery Method vs Payment Method constraints
+            if (order.DeliveryMethod == DeliveryMethods.Pickup)
             {
-                throw new InvalidOperationException("Địa chỉ giao hàng là bắt buộc khi chọn Giao hàng tận nơi.");
+                if (order.PaymentMethod == PaymentMethods.COD)
+                {
+                    throw new InvalidOperationException("Phương thức thanh toán COD không áp dụng cho đơn hàng nhận tại showroom.");
+                }
+            }
+            else if (order.DeliveryMethod == DeliveryMethods.Shipping)
+            {
+                if (string.IsNullOrWhiteSpace(order.ShippingAddress))
+                {
+                    throw new InvalidOperationException("Địa chỉ giao hàng là bắt buộc khi chọn giao hàng tận nơi.");
+                }
+                if (order.PaymentMethod == PaymentMethods.CashAtShowroom)
+                {
+                    throw new InvalidOperationException("Phương thức thanh toán bằng tiền mặt tại showroom không áp dụng cho đơn hàng giao tận nơi.");
+                }
             }
 
             order.ShippingFee = order.DeliveryMethod switch
             {
-                "HomeDelivery" => 30000m,
-                "GarageInstallation" => 50000m,
+                DeliveryMethods.Shipping => 30000m,
                 _ => 0m
             };
 
@@ -47,14 +67,15 @@ namespace Services
 
             try
             {
-                decimal total = 0;
-                var pendingTransactions = new List<InventoryTransaction>();
-                var splitDetails = new List<PartOrderDetail>();
-                
-                // Copy details list to iterate to avoid collection modification exceptions
-                var originalDetails = order.PartOrderDetails.ToList();
+                decimal subtotal = 0;
+                var details = order.PartOrderDetails.ToList();
 
-                foreach (var detail in originalDetails)
+                if (!details.Any())
+                {
+                    throw new InvalidOperationException("Đơn hàng phải có ít nhất một phụ tùng.");
+                }
+
+                foreach (var detail in details)
                 {
                     var part = context.Parts.SingleOrDefault(p => p.PartId == detail.PartId);
                     if (part == null)
@@ -64,106 +85,30 @@ namespace Services
 
                     if (part.Status == "Inactive")
                     {
-                        throw new InvalidOperationException($"Phụ tùng '{part.PartName}' hiện không sẵn sàng để bán.");
+                        throw new InvalidOperationException($"Phụ tùng '{part.PartName}' hiện không khả dụng.");
                     }
 
-                    var remainingQuantity = detail.Quantity;
-                    
-                    // Implement FIFO/FEFO: Order candidate parts of the same generic name by ExpiredAt ascending (earliest first, nulls/non-perishables last)
-                    var candidates = context.Parts
-                        .Where(p => p.PartName == part.PartName && p.Status == "Available" && p.Quantity > 0)
-                        .OrderBy(p => p.ExpiredAt ?? DateTime.MaxValue)
-                        .ToList();
-
-                    if (!candidates.Any())
+                    if (detail.Quantity <= 0)
                     {
-                        candidates.Add(part);
+                        throw new InvalidOperationException($"Số lượng đặt hàng cho phụ tùng '{part.PartName}' phải lớn hơn 0.");
                     }
 
-                    bool firstAllocated = false;
-                    foreach (var candidate in candidates)
+                    if (part.Quantity < detail.Quantity)
                     {
-                        if (remainingQuantity <= 0) break;
-
-                        int allocQty = Math.Min(candidate.Quantity, remainingQuantity);
-                        if (allocQty <= 0) continue;
-
-                        candidate.Quantity -= allocQty;
-                        remainingQuantity -= allocQty;
-
-                        // Apply MinStockLevel warning & status update
-                        if (candidate.Quantity == 0 || candidate.Quantity < candidate.MinStockLevel)
-                        {
-                            candidate.Status = "OutOfStock";
-                        }
-
-                        context.Entry(candidate).State = EntityState.Modified;
-
-                        if (!firstAllocated)
-                        {
-                            detail.PartId = candidate.PartId;
-                            detail.Quantity = allocQty;
-                            detail.UnitPrice = candidate.Price;
-                            detail.SubTotal = candidate.Price * allocQty;
-                            total += detail.SubTotal;
-                            firstAllocated = true;
-                        }
-                        else
-                        {
-                            var splitDetail = new PartOrderDetail
-                            {
-                                PartId = candidate.PartId,
-                                Quantity = allocQty,
-                                UnitPrice = candidate.Price,
-                                SubTotal = candidate.Price * allocQty
-                            };
-                            splitDetails.Add(splitDetail);
-                            total += splitDetail.SubTotal;
-                        }
-
-                        // Prepare InventoryTransaction (Audit Trail)
-                        var invTx = new InventoryTransaction
-                        {
-                            PartId = candidate.PartId,
-                            TransactionType = "Export",
-                            Quantity = -allocQty, // Negative for export
-                            ReferenceType = "PartOrder",
-                            StaffId = order.CustomerId,
-                            Notes = $"Xuất kho bán phụ tùng cho đơn hàng",
-                            TransactionDate = DateTime.Now,
-                            CreatedAt = DateTime.Now,
-                            CreatedUser = order.CustomerId
-                        };
-                        pendingTransactions.Add(invTx);
+                        throw new InvalidOperationException($"Số lượng tồn kho của phụ tùng '{part.PartName}' không đủ (Còn lại: {part.Quantity}).");
                     }
 
-                    if (remainingQuantity > 0)
-                    {
-                        throw new InvalidOperationException($"Số lượng tồn kho cho phụ tùng '{part.PartName}' không đủ.");
-                    }
+                    // Lock price server-side from database
+                    detail.UnitPrice = part.Price;
+                    detail.SubTotal = part.Price * detail.Quantity;
+                    subtotal += detail.SubTotal;
                 }
 
-                // Add split details if any
-                foreach (var sd in splitDetails)
-                {
-                    order.PartOrderDetails.Add(sd);
-                }
-
-                order.TotalAmount = total + order.ShippingFee;
+                order.TotalAmount = subtotal + order.ShippingFee;
                 order.CreatedAt = DateTime.Now;
-                order.Status = "Pending";
+                order.Status = PartOrderStatuses.Pending; // Stock is NOT deducted in Pending status
 
                 context.PartOrders.Add(order);
-                context.SaveChanges(); // Generates order.OrderId
-
-                // Now associate transactions with order.OrderId and save
-                foreach (var tx in pendingTransactions)
-                {
-                    tx.ReferenceId = order.OrderId;
-                    tx.Notes += $" #{order.OrderId}";
-                    context.InventoryTransactions.Add(tx);
-                }
-
                 context.SaveChanges();
                 transaction.Commit();
             }
@@ -183,6 +128,7 @@ namespace Services
             {
                 var dbOrder = context.PartOrders
                     .Include(o => o.PartOrderDetails)
+                        .ThenInclude(d => d.Part)
                     .SingleOrDefault(o => o.OrderId == order.OrderId);
 
                 if (dbOrder == null)
@@ -190,48 +136,174 @@ namespace Services
                     throw new InvalidOperationException("Không tìm thấy đơn hàng cần cập nhật.");
                 }
 
-                if (order.Status == "Cancelled" && dbOrder.Status != "Cancelled")
+                string oldStatus = dbOrder.Status;
+                string newStatus = order.Status;
+
+                // Handle Admin Confirmation (Pending -> Confirmed)
+                if (newStatus == PartOrderStatuses.Confirmed && oldStatus == PartOrderStatuses.Pending)
                 {
+                    decimal subtotal = 0;
+                    var pendingTransactions = new List<InventoryTransaction>();
+
+                    // Verify stock and deduct inventory
                     foreach (var detail in dbOrder.PartOrderDetails)
                     {
                         var part = context.Parts.SingleOrDefault(p => p.PartId == detail.PartId);
-                        if (part != null)
+                        if (part == null)
                         {
-                            part.Quantity += detail.Quantity;
-                            if ((part.Status == "OutOfStock" || part.Status == "Out of Stock") && part.Quantity > 0)
+                            throw new InvalidOperationException($"Không tìm thấy phụ tùng ID #{detail.PartId}");
+                        }
+
+                        if (part.Quantity < detail.Quantity)
+                        {
+                            throw new InvalidOperationException($"Số lượng tồn kho cho '{part.PartName}' không đủ để xác nhận đơn hàng.");
+                        }
+
+                        // Deduct stock
+                        part.Quantity -= detail.Quantity;
+                        if (part.Quantity == 0 || part.Quantity < part.MinStockLevel)
+                        {
+                            part.Status = "OutOfStock";
+                        }
+                        context.Entry(part).State = EntityState.Modified;
+
+                        subtotal += detail.SubTotal;
+
+                        // Create InventoryTransaction Export record
+                        var invTx = new InventoryTransaction
+                        {
+                            PartId = part.PartId,
+                            TransactionType = InventoryTransactionTypes.Export,
+                            Quantity = -detail.Quantity, // Negative for export
+                            ReferenceType = InventoryReferenceTypes.PartOrder,
+                            ReferenceId = dbOrder.OrderId,
+                            StaffId = dbOrder.CustomerId,
+                            Notes = $"Xuất kho xác nhận đơn phụ tùng #{dbOrder.OrderId}",
+                            TransactionDate = DateTime.Now,
+                            CreatedAt = DateTime.Now,
+                            CreatedUser = dbOrder.CustomerId
+                        };
+                        pendingTransactions.Add(invTx);
+                    }
+
+                    // Create MasterInvoice for Part Order
+                    var masterInvoice = new MasterInvoice
+                    {
+                        InvoiceNumber = $"INV-{DateTime.Now:yyyyMMdd}-{dbOrder.OrderId:D4}",
+                        InvoiceType = InvoiceTypes.Part,
+                        CustomerId = dbOrder.CustomerId,
+                        TotalSubTotal = subtotal,
+                        DiscountAmount = 0,
+                        TaxAmount = 0,
+                        TotalAmount = dbOrder.TotalAmount,
+                        PaymentStatus = PaymentStatuses.Unpaid,
+                        InvoiceStatus = InvoiceStatuses.Confirmed,
+                        PaymentMethod = dbOrder.PaymentMethod,
+                        PurchaseType = "Buyout",
+                        CreatedAt = DateTime.Now
+                    };
+                    context.MasterInvoices.Add(masterInvoice);
+                    context.SaveChanges(); // Generate MasterInvoiceId
+
+                    // Create PartInvoice linking MasterInvoice to PartOrder
+                    var partInvoice = new PartInvoice
+                    {
+                        MasterInvoiceId = masterInvoice.MasterInvoiceId,
+                        PartOrderId = dbOrder.OrderId,
+                        SubTotal = subtotal,
+                        ShippingFee = dbOrder.ShippingFee,
+                        TaxAmount = 0,
+                        TotalAmount = dbOrder.TotalAmount,
+                        CreatedAt = DateTime.Now
+                    };
+                    context.PartInvoices.Add(partInvoice);
+
+                    foreach (var tx in pendingTransactions)
+                    {
+                        context.InventoryTransactions.Add(tx);
+                    }
+
+                    dbOrder.MasterInvoiceId = masterInvoice.MasterInvoiceId;
+                    dbOrder.Status = PartOrderStatuses.Confirmed;
+                }
+                // Handle Cancellation (Pending or Confirmed -> Cancelled)
+                else if (newStatus == PartOrderStatuses.Cancelled && oldStatus != PartOrderStatuses.Cancelled)
+                {
+                    // Restore stock ONLY IF stock was previously deducted (Confirmed or Shipping)
+                    if (oldStatus == PartOrderStatuses.Confirmed || oldStatus == PartOrderStatuses.Shipping)
+                    {
+                        foreach (var detail in dbOrder.PartOrderDetails)
+                        {
+                            var part = context.Parts.SingleOrDefault(p => p.PartId == detail.PartId);
+                            if (part != null)
                             {
-                                part.Status = "Available";
+                                part.Quantity += detail.Quantity;
+                                if ((part.Status == "OutOfStock" || part.Status == "Out of Stock") && part.Quantity > 0)
+                                {
+                                    part.Status = "Available";
+                                }
+
+                                context.Entry(part).State = EntityState.Modified;
+
+                                // Log Return InventoryTransaction
+                                var invTx = new InventoryTransaction
+                                {
+                                    PartId = part.PartId,
+                                    TransactionType = InventoryTransactionTypes.Return,
+                                    Quantity = detail.Quantity, // Positive for return
+                                    ReferenceType = InventoryReferenceTypes.PartOrder,
+                                    ReferenceId = dbOrder.OrderId,
+                                    StaffId = dbOrder.CustomerId,
+                                    Notes = $"Hoàn kho do hủy đơn hàng phụ tùng #{dbOrder.OrderId}",
+                                    TransactionDate = DateTime.Now,
+                                    CreatedAt = DateTime.Now,
+                                    CreatedUser = dbOrder.CustomerId
+                                };
+                                context.InventoryTransactions.Add(invTx);
                             }
+                        }
+                    }
 
-                            context.Entry(part).State = EntityState.Modified;
+                    dbOrder.Status = PartOrderStatuses.Cancelled;
 
-                            // Log Return InventoryTransaction (Audit Trail)
-                            var invTx = new InventoryTransaction
-                            {
-                                PartId = part.PartId,
-                                TransactionType = "Return",
-                                Quantity = detail.Quantity, // Positive for return
-                                ReferenceType = "PartOrder",
-                                ReferenceId = dbOrder.OrderId,
-                                StaffId = dbOrder.CustomerId,
-                                Notes = $"Khách hàng trả hàng / Hủy đơn hàng #{dbOrder.OrderId}",
-                                TransactionDate = DateTime.Now,
-                                CreatedAt = DateTime.Now,
-                                CreatedUser = dbOrder.CustomerId
-                            };
-                            context.InventoryTransactions.Add(invTx);
+                    if (dbOrder.MasterInvoiceId.HasValue)
+                    {
+                        var masterInvoice = context.MasterInvoices.Find(dbOrder.MasterInvoiceId.Value);
+                        if (masterInvoice != null)
+                        {
+                            masterInvoice.InvoiceStatus = InvoiceStatuses.Cancelled;
+                            masterInvoice.UpdatedAt = DateTime.Now;
                         }
                     }
                 }
+                // Handle Completion (Confirmed / Shipping -> Completed)
+                else if (newStatus == PartOrderStatuses.Completed)
+                {
+                    dbOrder.Status = PartOrderStatuses.Completed;
 
-                dbOrder.Status = order.Status;
+                    if (dbOrder.MasterInvoiceId.HasValue)
+                    {
+                        var masterInvoice = context.MasterInvoices.Find(dbOrder.MasterInvoiceId.Value);
+                        if (masterInvoice != null)
+                        {
+                            masterInvoice.PaymentStatus = PaymentStatuses.Paid;
+                            masterInvoice.InvoiceStatus = InvoiceStatuses.Completed;
+                            masterInvoice.PaidAt = DateTime.Now;
+                            masterInvoice.UpdatedAt = DateTime.Now;
+                        }
+                    }
+                }
+                else
+                {
+                    dbOrder.Status = newStatus;
+                }
+
                 dbOrder.UpdatedAt = DateTime.Now;
                 if (order.CustomerName != null) dbOrder.CustomerName = order.CustomerName;
                 if (order.CustomerPhone != null) dbOrder.CustomerPhone = order.CustomerPhone;
                 if (order.CustomerEmail != null) dbOrder.CustomerEmail = order.CustomerEmail;
                 if (order.ShippingAddress != null) dbOrder.ShippingAddress = order.ShippingAddress;
                 if (order.DeliveryMethod != null) dbOrder.DeliveryMethod = order.DeliveryMethod;
-                if (order.ShippingFee != 0) dbOrder.ShippingFee = order.ShippingFee;
 
                 context.SaveChanges();
                 transaction.Commit();

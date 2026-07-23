@@ -11,5 +11,9 @@ namespace Repositories
         public PartCategory? GetCategoryById(int id) => PartCategoryDAO.Instance.GetCategoryById(id);
 
         public void AddCategory(PartCategory category) => PartCategoryDAO.Instance.AddCategory(category);
+
+        public void UpdateCategory(PartCategory category) => PartCategoryDAO.Instance.UpdateCategory(category);
+
+        public void DeleteCategory(int id) => PartCategoryDAO.Instance.DeleteCategory(id);
     }
 }

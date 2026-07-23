@@ -63,6 +63,20 @@ namespace CarSalesManagementSystemAPI.Controllers
                 {
                     return BadRequest(ModelState);
                 }
+
+                if (supplier.SupplierId > 0)
+                {
+                    var existing = _service.GetSupplierById(supplier.SupplierId);
+                    if (existing != null)
+                    {
+                        supplier.CreatedAt = existing.CreatedAt;
+                        supplier.UpdatedAt = DateTime.Now;
+                        _service.UpdateSupplier(supplier);
+                        return Ok(new { success = true, message = "Cập nhật nhà cung cấp thành công.", data = supplier });
+                    }
+                }
+
+                supplier.SupplierId = 0;
                 supplier.CreatedAt = DateTime.Now;
                 _service.AddSupplier(supplier);
                 return CreatedAtAction(nameof(GetById), new { id = supplier.SupplierId }, supplier);

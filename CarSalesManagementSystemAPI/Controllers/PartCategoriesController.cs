@@ -62,8 +62,72 @@ namespace CarSalesManagementSystemAPI.Controllers
                 {
                     return BadRequest(ModelState);
                 }
+
+                if (category.CategoryId > 0)
+                {
+                    var existing = _service.GetCategoryById(category.CategoryId);
+                    if (existing != null)
+                    {
+                        _service.UpdateCategory(category);
+                        return Ok(new { success = true, message = "Cập nhật danh mục thành công.", data = category });
+                    }
+                }
+
+                category.CategoryId = 0;
+                category.CreatedAt = DateTime.Now;
                 _service.AddCategory(category);
                 return CreatedAtAction(nameof(GetById), new { id = category.CategoryId }, category);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        [HttpPut("{id}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public IActionResult Put(int id, [FromBody] PartCategory category)
+        {
+            try
+            {
+                if (id != category.CategoryId)
+                {
+                    return BadRequest(new { message = "Mã ID danh mục không khớp." });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var existing = _service.GetCategoryById(id);
+                if (existing == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy danh mục cần cập nhật." });
+                }
+
+                _service.UpdateCategory(category);
+                return Ok(new { success = true, message = "Cập nhật danh mục thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public IActionResult Delete(int id)
+        {
+            try
+            {
+                var existing = _service.GetCategoryById(id);
+                if (existing == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy danh mục cần xóa." });
+                }
+
+                _service.DeleteCategory(id);
+                return Ok(new { success = true, message = "Xóa danh mục thành công." });
             }
             catch (Exception ex)
             {

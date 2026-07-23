@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using BusinessObjects.Models;
 using BusinessObjects.DTOs;
+using DataAccessObjects;
+using Microsoft.EntityFrameworkCore;
 using Repositories;
 
 namespace Services
@@ -172,6 +174,66 @@ namespace Services
                 }
                 appointment.UpdatedAt = DateTime.Now;
                 _repository.UpdateAppointment(appointment);
+
+                // Auto-generate MasterInvoice & ServiceInvoice when status transitions to Completed
+                if (status == "Completed" && !appointment.MasterInvoiceId.HasValue)
+                {
+                    using var context = new CarShowroomContext();
+                    var dbAppointment = context.MaintenanceAppointments
+                        .Include(a => a.AppointmentDetails)
+                        .Include(a => a.ConsumedParts)
+                        .FirstOrDefault(a => a.AppointmentId == appointmentId);
+
+                    if (dbAppointment != null && !dbAppointment.MasterInvoiceId.HasValue)
+                    {
+                        decimal detailsTotal = dbAppointment.AppointmentDetails?.Sum(d => d.UnitPrice * d.Quantity) ?? 0;
+                        decimal partsTotal = dbAppointment.ConsumedParts?.Where(p => p.ApprovedByCustomer).Sum(p => p.UnitPrice * p.Quantity) ?? 0;
+
+                        decimal extraFee = 0;
+                        if (!string.IsNullOrEmpty(dbAppointment.Note))
+                        {
+                            var match = System.Text.RegularExpressions.Regex.Match(dbAppointment.Note, @"\[PhiPhatSinh:\s*(\d+)\]");
+                            if (match.Success)
+                            {
+                                decimal.TryParse(match.Groups[1].Value, out extraFee);
+                            }
+                        }
+
+                        decimal totalAmount = detailsTotal + partsTotal + extraFee;
+
+                        var masterInvoice = new MasterInvoice
+                        {
+                            InvoiceNumber = $"INV-SRV-{DateTime.Now:yyyyMMdd}-{appointmentId:D4}",
+                            InvoiceType = BusinessObjects.Common.InvoiceTypes.Service,
+                            CustomerId = dbAppointment.CustomerId,
+                            TotalSubTotal = detailsTotal + partsTotal,
+                            DiscountAmount = 0,
+                            TaxAmount = 0,
+                            TotalAmount = totalAmount,
+                            PaymentStatus = dbAppointment.IsPaid ? BusinessObjects.Common.PaymentStatuses.Paid : BusinessObjects.Common.PaymentStatuses.Unpaid,
+                            InvoiceStatus = BusinessObjects.Common.InvoiceStatuses.Confirmed,
+                            PurchaseType = "Buyout",
+                            CreatedAt = DateTime.Now
+                        };
+                        context.MasterInvoices.Add(masterInvoice);
+                        context.SaveChanges();
+
+                        var serviceInvoice = new ServiceInvoice
+                        {
+                            MasterInvoiceId = masterInvoice.MasterInvoiceId,
+                            AppointmentId = appointmentId,
+                            SubTotal = detailsTotal + partsTotal,
+                            LaborDiscount = 0,
+                            TotalAmount = totalAmount,
+                            CreatedAt = DateTime.Now
+                        };
+                        context.ServiceInvoices.Add(serviceInvoice);
+
+                        dbAppointment.MasterInvoiceId = masterInvoice.MasterInvoiceId;
+                        dbAppointment.UpdatedAt = DateTime.Now;
+                        context.SaveChanges();
+                    }
+                }
             }
         }
 
@@ -183,6 +245,23 @@ namespace Services
                 appointment.IsPaid = isPaid;
                 appointment.UpdatedAt = DateTime.Now;
                 _repository.UpdateAppointment(appointment);
+
+                if (appointment.MasterInvoiceId.HasValue)
+                {
+                    using var context = new CarShowroomContext();
+                    var masterInvoice = context.MasterInvoices.Find(appointment.MasterInvoiceId.Value);
+                    if (masterInvoice != null)
+                    {
+                        masterInvoice.PaymentStatus = isPaid ? BusinessObjects.Common.PaymentStatuses.Paid : BusinessObjects.Common.PaymentStatuses.Unpaid;
+                        if (isPaid)
+                        {
+                            masterInvoice.InvoiceStatus = BusinessObjects.Common.InvoiceStatuses.Completed;
+                            masterInvoice.PaidAt = DateTime.Now;
+                        }
+                        masterInvoice.UpdatedAt = DateTime.Now;
+                        context.SaveChanges();
+                    }
+                }
             }
         }
 

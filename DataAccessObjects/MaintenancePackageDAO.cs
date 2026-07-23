@@ -69,27 +69,38 @@ namespace DataAccessObjects
             using var transaction = context.Database.BeginTransaction();
             try
             {
-                context.Entry(package).State = EntityState.Modified;
+                var existingPackage = context.MaintenancePackages
+                    .Include(p => p.PackageServices)
+                    .FirstOrDefault(p => p.PackageId == package.PackageId);
 
-                // Xóa tất cả PackageServices cũ
-                var existingLinks = context.PackageServices
-                    .Where(ps => ps.PackageId == package.PackageId)
-                    .ToList();
-                context.PackageServices.RemoveRange(existingLinks);
-
-                // Thêm PackageServices mới
-                foreach (var serviceId in serviceIds)
+                if (existingPackage != null)
                 {
-                    context.PackageServices.Add(new PackageService
-                    {
-                        PackageId = package.PackageId,
-                        ServiceId = serviceId,
-                        CreatedAt = DateTime.Now
-                    });
-                }
+                    existingPackage.PackageName = package.PackageName;
+                    existingPackage.Description = package.Description;
+                    existingPackage.PackagePrice = package.PackagePrice;
+                    existingPackage.Status = package.Status ?? "Available";
+                    existingPackage.UpdatedAt = package.UpdatedAt ?? DateTime.Now;
 
-                context.SaveChanges();
-                transaction.Commit();
+                    // Xóa tất cả PackageServices cũ
+                    context.PackageServices.RemoveRange(existingPackage.PackageServices);
+
+                    // Thêm PackageServices mới
+                    if (serviceIds != null)
+                    {
+                        foreach (var serviceId in serviceIds)
+                        {
+                            context.PackageServices.Add(new PackageService
+                            {
+                                PackageId = existingPackage.PackageId,
+                                ServiceId = serviceId,
+                                CreatedAt = DateTime.Now
+                            });
+                        }
+                    }
+
+                    context.SaveChanges();
+                    transaction.Commit();
+                }
             }
             catch
             {
@@ -101,8 +112,16 @@ namespace DataAccessObjects
         public void UpdatePackage(MaintenancePackage package)
         {
             using var context = new CarShowroomContext();
-            context.Entry(package).State = EntityState.Modified;
-            context.SaveChanges();
+            var existingPackage = context.MaintenancePackages.FirstOrDefault(p => p.PackageId == package.PackageId);
+            if (existingPackage != null)
+            {
+                existingPackage.PackageName = package.PackageName;
+                existingPackage.Description = package.Description;
+                existingPackage.PackagePrice = package.PackagePrice;
+                existingPackage.Status = package.Status ?? "Available";
+                existingPackage.UpdatedAt = package.UpdatedAt ?? DateTime.Now;
+                context.SaveChanges();
+            }
         }
 
         public void DeletePackage(int packageId)

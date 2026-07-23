@@ -21,6 +21,8 @@ namespace BusinessObjects.Models
 
         public string DeliveryMethod { get; set; } = "Pickup";
 
+        public string? PaymentMethod { get; set; }
+
         public decimal ShippingFee { get; set; }
 
         public decimal TotalAmount { get; set; }

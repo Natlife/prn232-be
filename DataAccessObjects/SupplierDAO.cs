@@ -50,8 +50,18 @@ namespace DataAccessObjects
         public void UpdateSupplier(Supplier supplier)
         {
             using var context = new CarShowroomContext();
-            context.Entry(supplier).State = EntityState.Modified;
-            context.SaveChanges();
+            var existing = context.Suppliers.SingleOrDefault(s => s.SupplierId == supplier.SupplierId);
+            if (existing != null)
+            {
+                existing.SupplierName = supplier.SupplierName;
+                existing.ContactName = supplier.ContactName;
+                existing.Phone = supplier.Phone;
+                existing.Email = supplier.Email;
+                existing.Address = supplier.Address;
+                existing.Status = supplier.Status;
+                existing.UpdatedAt = DateTime.Now;
+                context.SaveChanges();
+            }
         }
 
         public void DeleteSupplier(int id)

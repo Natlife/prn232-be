@@ -192,6 +192,7 @@ namespace Services
                             WarehouseLocation = item.NewPart.WarehouseLocation?.Trim(),
                             WarrantyMonths = item.NewPart.WarrantyMonths,
                             Description = item.NewPart.Description?.Trim(),
+                            ImageUrl = item.NewPart.ImageUrl?.Trim(),
                             ExpiredAt = item.ExpiredAt,
                             Status = "OutOfStock",
                             CreatedAt = DateTime.Now,

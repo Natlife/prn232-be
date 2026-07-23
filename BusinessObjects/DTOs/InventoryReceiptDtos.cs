@@ -16,6 +16,7 @@ namespace BusinessObjects.DTOs
         public string? WarehouseLocation { get; set; }
         public int WarrantyMonths { get; set; }
         public string? Description { get; set; }
+        public string? ImageUrl { get; set; }
     }
 
     public class InventoryReceiptItemDto

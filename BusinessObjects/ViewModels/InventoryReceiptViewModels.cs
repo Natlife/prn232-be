@@ -35,15 +35,15 @@ namespace BusinessObjects.ViewModels
         public int WarrantyMonths { get; set; }
 
         public string? Description { get; set; }
+
+        public string? ImageUrl { get; set; }
     }
 
     public class InventoryReceiptItemViewModel
     {
         public bool IsNewPart { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn nhà cung cấp cho mỗi dòng")]
-        [Range(1, int.MaxValue, ErrorMessage = "Nhà cung cấp không hợp lệ")]
-        public int SupplierId { get; set; }
+        public int? SupplierId { get; set; }
 
         // Dùng khi chọn phụ tùng có sẵn
         public int? PartId { get; set; }
