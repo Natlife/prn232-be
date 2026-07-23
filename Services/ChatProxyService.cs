@@ -21,7 +21,7 @@ namespace Services;
 //    → Return raw JSON object to controller
 //
 //  Boundary: this service ONLY handles HTTP transport to Python.
-//            All business logic lives in Python or ComboOrderService.
+//            Toàn bộ nghiệp vụ tư vấn nằm ở dịch vụ Python RAG (chatbot chỉ tư vấn, không tạo đơn).
 //
 // ─────────────────────────────────────────────────────────────────────────────
 

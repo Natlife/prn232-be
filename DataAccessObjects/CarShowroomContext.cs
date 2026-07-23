@@ -54,12 +54,6 @@ public partial class CarShowroomContext : DbContext
 
     public virtual DbSet<PurchaseRequest> PurchaseRequests { get; set; }
 
-    public virtual DbSet<DepositCaptcha> DepositCaptchas { get; set; }
-
-    public virtual DbSet<ComboOrder> ComboOrders { get; set; }
-
-    public virtual DbSet<ComboOrderItem> ComboOrderItems { get; set; }
-
     public virtual DbSet<Supplier> Suppliers { get; set; }
 
     public virtual DbSet<PartCompatibility> PartCompatibilities { get; set; }
@@ -730,11 +724,7 @@ public partial class CarShowroomContext : DbContext
                 .HasMaxLength(50)
                 .HasDefaultValue("Pending");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-
-            entity.Property(e => e.DepositAmount).HasColumnType("decimal(18,2)");
-            entity.Property(e => e.DepositDate).HasColumnType("datetime");
-            entity.Property(e => e.DepositExpiry).HasColumnType("datetime");
-            entity.Property(e => e.CaptchaCode).HasMaxLength(20);
+            entity.Property(e => e.ExpiredAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Car).WithMany(p => p.PurchaseRequests)
                 .HasForeignKey(d => d.CarId)
@@ -745,71 +735,9 @@ public partial class CarShowroomContext : DbContext
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PurchaseRequests_AppUsers");
-        });
 
-        modelBuilder.Entity<DepositCaptcha>(entity =>
-        {
-            entity.HasKey(e => e.CaptchaId);
-            entity.Property(e => e.Code).HasMaxLength(20).IsRequired();
-            entity.HasIndex(e => e.Code).IsUnique();
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.UsedAt).HasColumnType("datetime");
-            entity.HasOne(e => e.Car)
-                .WithMany()
-                .HasForeignKey(e => e.CarId)
-                .HasConstraintName("FK_DepositCaptchas_Cars");
-        });
-
-        modelBuilder.Entity<ComboOrder>(entity =>
-        {
-            entity.HasKey(e => e.ComboOrderId).HasName("PK__ComboOrders");
-
-            entity.Property(e => e.CustomerName).HasMaxLength(100);
-            entity.Property(e => e.CustomerPhone).HasMaxLength(20);
-            entity.Property(e => e.CustomerEmail).HasMaxLength(100);
-            entity.Property(e => e.ShippingAddress).HasMaxLength(255);
-            entity.Property(e => e.Note).HasMaxLength(1000);
-            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)").HasDefaultValue(0);
-            entity.Property(e => e.Source).HasMaxLength(50).HasDefaultValue("manual");
-            entity.Property(e => e.ChatSessionId).HasMaxLength(100);
-            entity.Property(e => e.PurchaseType).HasMaxLength(20).HasDefaultValue("Buyout");
-            entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
-            entity.Property(e => e.DepositAmount).HasColumnType("decimal(18,2)");
-            entity.Property(e => e.DepositExpiresAt).HasColumnType("datetime");
-            entity.Property(e => e.CaptchaCode).HasMaxLength(20);
-            entity.Property(e => e.CaptchaGeneratedAt).HasColumnType("datetime");
-            entity.Property(e => e.IsCaptchaUsed).HasDefaultValue(false);
-            entity.Property(e => e.CaptchaUsedAt).HasColumnType("datetime");
-            entity.Property(e => e.FinalCaptchaCode).HasMaxLength(20);
-            entity.Property(e => e.FinalCaptchaGeneratedAt).HasColumnType("datetime");
-            entity.Property(e => e.IsFinalCaptchaUsed).HasDefaultValue(false);
-            entity.Property(e => e.FinalCaptchaUsedAt).HasColumnType("datetime");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Customer).WithMany()
-                .HasForeignKey(d => d.CustomerId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ComboOrders_AppUsers");
-        });
-
-        modelBuilder.Entity<ComboOrderItem>(entity =>
-        {
-            entity.HasKey(e => e.ItemId).HasName("PK__ComboOrderItems");
-
-            entity.Property(e => e.ItemType).HasMaxLength(20);
-            entity.Property(e => e.ItemName).HasMaxLength(200);
-            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
-            entity.Property(e => e.SubTotal).HasColumnType("decimal(18,2)");
-
-            entity.HasOne(d => d.ComboOrder).WithMany(p => p.Items)
-                .HasForeignKey(d => d.ComboOrderId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_ComboOrderItems_ComboOrders");
+            // CreatedUser / UpdatedUser ánh xạ như cột scalar (int?). Ràng buộc khóa ngoại
+            // tới AppUsers đã được DB v2 đảm bảo; không cấu hình quan hệ EF để tránh xung đột model.
         });
 
         OnModelCreatingPartial(modelBuilder);

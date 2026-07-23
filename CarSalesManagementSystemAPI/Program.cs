@@ -53,18 +53,17 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
             builder.Services.AddScoped<IInventoryService, InventoryService>();
             builder.Services.AddScoped<IInventoryReceiptService, InventoryReceiptService>();
-            // Deposit / Purchase flow
-            builder.Services.AddScoped<IPurchaseRequestRepository, PurchaseRequestRepository>();
-            builder.Services.AddScoped<IPurchaseRequestService, PurchaseRequestService>();
-            builder.Services.AddScoped<IDepositCaptchaRepository, DepositCaptchaRepository>();
-            builder.Services.AddScoped<IDepositCaptchaService, DepositCaptchaService>();
-            // builder.Services.AddHostedService<DepositCleanupService>();
+            // Car sales flow (yêu cầu mua xe)
+            builder.Services.AddScoped<ICarSalesRepository, CarSalesRepository>();
+            builder.Services.AddScoped<ICarSalesService, CarSalesService>();
 
-            // Combo Order stack
-            builder.Services.AddScoped<Repositories.IComboOrderRepository, Repositories.ComboOrderRepository>();
-            builder.Services.AddScoped<Services.IComboOrderService, Services.ComboOrderService>();
+            // Hóa đơn tổng dùng chung: checkout (mua lẻ/gộp) + thanh toán đặt cọc/mua đứt cho cả 3 module
+            builder.Services.AddScoped<ICheckoutRepository, CheckoutRepository>();
+            builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+            builder.Services.AddScoped<IMasterInvoicePaymentRepository, MasterInvoicePaymentRepository>();
+            builder.Services.AddScoped<IMasterInvoicePaymentService, MasterInvoicePaymentService>();
 
-            // Chat proxy — delegates to Python RAG service
+            // Chat proxy — delegates to Python RAG service (chatbot chỉ tư vấn, không tạo đơn)
             builder.Services.AddHttpClient<IChatProxyService, ChatProxyService>();
 
             var modelBuilder = new ODataConventionModelBuilder();
@@ -86,11 +85,10 @@ namespace CarSalesManagementSystemAPI
             var partOrders = modelBuilder.EntitySet<BusinessObjects.Models.PartOrder>("PartOrders");
             partOrders.EntityType.HasKey(po => po.OrderId);
 
+            // PurchaseRequest được phục vụ qua REST (/api/car-sales), nhưng vẫn khai báo khóa cho OData
+            // vì Car.PurchaseRequests là navigation — tránh mọi rủi ro khi dựng EDM.
             var purchaseRequests = modelBuilder.EntitySet<BusinessObjects.Models.PurchaseRequest>("PurchaseRequests");
             purchaseRequests.EntityType.HasKey(pr => pr.RequestId);
-
-            var depositCaptchas = modelBuilder.EntitySet<BusinessObjects.Models.DepositCaptcha>("DepositCaptchas");
-            depositCaptchas.EntityType.HasKey(dc => dc.CaptchaId);
 
             var odataSuppliers = modelBuilder.EntitySet<BusinessObjects.Models.Supplier>("Suppliers");
             odataSuppliers.EntityType.HasKey(s => s.SupplierId);
@@ -158,58 +156,34 @@ namespace CarSalesManagementSystemAPI
             {
                 try
                 {
-                    System.Console.WriteLine("Entity Framework Migrations are managed manually via SQL script.");
+                    System.Console.WriteLine("Entity Framework Migrations are managed manually via SQL script (CarShowroomDB_v2.sql).");
                     using var context = new DataAccessObjects.CarShowroomContext();
-                    // context.Database.Migrate();
-                    // System.Console.WriteLine("EF Migrations applied successfully.");
 
-                    // Check and apply custom deposit flow schema adjustments
-                    var tableExists = false;
-                    try
-                    {
-                        context.Database.ExecuteSqlRaw("SELECT TOP 1 1 FROM DepositCaptchas");
-                        tableExists = true;
-                    }
-                    catch
-                    {
-                        // Table doesn't exist
-                    }
-
-                    if (!tableExists)
-                    {
-                        System.Console.WriteLine("Applying custom deposit migration schema...");
-                        context.Database.ExecuteSqlRaw(@"
-                            ALTER TABLE PurchaseRequests
-                                ADD DepositAmount   DECIMAL(18,2)  NULL,
-                                    DepositDate     DATETIME       NULL,
-                                    DepositExpiry   DATETIME       NULL,
-                                    CaptchaCode     NVARCHAR(20)   NULL;
-                        ");
-
-                        context.Database.ExecuteSqlRaw(@"
-                            CREATE TABLE DepositCaptchas (
-                                CaptchaId   INT IDENTITY(1,1) PRIMARY KEY,
-                                Code        NVARCHAR(20) NOT NULL UNIQUE,
-                                CarId       INT NOT NULL,
-                                IsUsed      BIT NOT NULL DEFAULT 0,
-                                CreatedAt   DATETIME NOT NULL DEFAULT GETDATE(),
-                                UsedAt      DATETIME NULL,
-                                CONSTRAINT FK_DepositCaptchas_Cars FOREIGN KEY (CarId) REFERENCES Cars(CarId)
-                            );
-                        ");
-                        System.Console.WriteLine("Custom deposit migration schema applied successfully.");
-                    }
+                    // Kiểm tra kết nối DB ngay khi khởi động để phát hiện sớm lỗi (slow + 500 thường do DB).
+                    System.Console.WriteLine("Checking database connectivity...");
+                    if (context.Database.CanConnect())
+                        System.Console.WriteLine("[OK] Database connection successful.");
+                    else
+                        System.Console.WriteLine("[ERROR] KHÔNG kết nối được database. Kiểm tra ConnectionStrings:DefaultConnection trong appsettings.json và đảm bảo SQL Server đang chạy + database CarShowroomDB đã tạo.");
+                    // Schema chuẩn được tạo từ database/CarShowroomDB_v2.sql.
+                    // Module ô tô (đặt cọc/mua đứt) dùng MasterInvoices + CarInvoices + PurchaseRequests của v2,
+                    // không còn tạo bảng DepositCaptchas hay cột deposit trên PurchaseRequests khi khởi động.
 
                     // Check and apply custom delivery management schema adjustments
                     try
                     {
-                        System.Console.WriteLine("Checking delivery schema columns in PartOrders...");
+                        System.Console.WriteLine("Checking delivery and payment schema columns in PartOrders...");
                         context.Database.ExecuteSqlRaw(@"
                             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('PartOrders') AND name = 'DeliveryMethod')
                             BEGIN
                                 ALTER TABLE PartOrders
                                     ADD DeliveryMethod   NVARCHAR(50)   NOT NULL DEFAULT 'Pickup',
                                         ShippingFee      DECIMAL(18,2)  NOT NULL DEFAULT 0;
+                            END
+                            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('PartOrders') AND name = 'PaymentMethod')
+                            BEGIN
+                                ALTER TABLE PartOrders
+                                    ADD PaymentMethod NVARCHAR(50) NULL;
                             END
                         ");
                         context.Database.ExecuteSqlRaw(@"
@@ -225,20 +199,45 @@ namespace CarSalesManagementSystemAPI
                                     ADD IsPaid BIT NOT NULL DEFAULT 0;
                             END
                         ");
-                        
+
+                        // Cột phục vụ xác thực OTP / Reset mật khẩu trên AppUsers
+                        System.Console.WriteLine("Checking OTP verification columns on AppUsers...");
+                        context.Database.ExecuteSqlRaw(@"
+                            IF COL_LENGTH('AppUsers','VerificationCode') IS NULL
+                                ALTER TABLE AppUsers ADD VerificationCode NVARCHAR(100) NULL;
+                            IF COL_LENGTH('AppUsers','CodeExpiryTime') IS NULL
+                                ALTER TABLE AppUsers ADD CodeExpiryTime DATETIME NULL;
+                        ");
+
+                        // Cột dùng chung trên hóa đơn tổng (cả 3 module cần) — tự bổ sung nếu chưa chạy patch.
+                        System.Console.WriteLine("Checking shared columns on MasterInvoices...");
+                        context.Database.ExecuteSqlRaw(@"
+                            IF COL_LENGTH('MasterInvoices','InvoiceType') IS NULL
+                                ALTER TABLE MasterInvoices ADD InvoiceType VARCHAR(20) NOT NULL CONSTRAINT DF_MasterInvoices_InvoiceType DEFAULT 'Car';
+                            IF COL_LENGTH('MasterInvoices','PaymentMethod') IS NULL
+                                ALTER TABLE MasterInvoices ADD PaymentMethod NVARCHAR(50) NULL;
+                            IF COL_LENGTH('MasterInvoices','PaymentReference') IS NULL
+                                ALTER TABLE MasterInvoices ADD PaymentReference NVARCHAR(100) NULL;
+                            IF COL_LENGTH('MasterInvoices','PaidAt') IS NULL
+                                ALTER TABLE MasterInvoices ADD PaidAt DATETIME NULL;
+                        ");
+
                         System.Console.WriteLine("Schema checks completed.");
                     }
                     catch (System.Exception ex)
                     {
-                        System.Console.WriteLine($"Error modifying PartOrders schema: {ex.InnerException?.Message ?? ex.Message}");
+                        System.Console.WriteLine($"[WARN] Schema sync skipped: {ex.InnerException?.Message ?? ex.Message}");
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    System.Console.WriteLine($"Error running migrations: {ex.InnerException?.Message ?? ex.Message}");
-                    throw;
+                    // KHÔNG để lỗi đồng bộ schema làm sập ứng dụng — chỉ ghi log để chẩn đoán.
+                    System.Console.WriteLine($"[WARN] Startup schema check failed (app vẫn khởi động): {ex.InnerException?.Message ?? ex.Message}");
                 }
             }
+
+            // Bắt & ghi log mọi exception chưa xử lý (đầu tiên trong pipeline).
+            app.UseMiddleware<Middleware.ExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

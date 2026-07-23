@@ -135,7 +135,7 @@ namespace Services
                 issuer: jwtSettings["Issuer"],
                 audience: jwtSettings["Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(2),
+                expires: DateTime.Now.AddHours(12),
                 signingCredentials: creds
             );
 

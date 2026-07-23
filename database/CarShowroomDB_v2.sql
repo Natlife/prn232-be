@@ -47,6 +47,8 @@ CREATE TABLE AppUsers (
     Address NVARCHAR(255) NULL,
     RoleId INT NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
+    VerificationCode NVARCHAR(100) NULL,
+    CodeExpiryTime DATETIME NULL,
     
     -- Audit fields
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
@@ -471,6 +473,7 @@ CREATE TABLE PartOrders (
     CustomerEmail NVARCHAR(100) NULL,
     ShippingAddress NVARCHAR(255) NULL,
     DeliveryMethod NVARCHAR(50) NOT NULL DEFAULT 'Pickup', -- 'Pickup' or 'Shipping'
+    PaymentMethod NVARCHAR(50) NULL,
     ShippingFee DECIMAL(18,2) NOT NULL DEFAULT 0,
     TotalAmount DECIMAL(18,2) NOT NULL DEFAULT 0,
     Status NVARCHAR(50) NOT NULL DEFAULT 'Pending'

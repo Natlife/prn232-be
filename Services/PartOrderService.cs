@@ -139,8 +139,15 @@ namespace Services
                 string oldStatus = dbOrder.Status;
                 string newStatus = order.Status;
 
+                // Nếu đơn đã được gộp vào một hóa đơn tổng (qua /api/checkout) thì hóa đơn + trừ kho
+                // đã được xử lý ở đó — chỉ cập nhật trạng thái, không tạo master/trừ kho lần nữa.
+                if (dbOrder.MasterInvoiceId.HasValue &&
+                    newStatus == PartOrderStatuses.Confirmed && oldStatus == PartOrderStatuses.Pending)
+                {
+                    dbOrder.Status = PartOrderStatuses.Confirmed;
+                }
                 // Handle Admin Confirmation (Pending -> Confirmed)
-                if (newStatus == PartOrderStatuses.Confirmed && oldStatus == PartOrderStatuses.Pending)
+                else if (newStatus == PartOrderStatuses.Confirmed && oldStatus == PartOrderStatuses.Pending)
                 {
                     decimal subtotal = 0;
                     var pendingTransactions = new List<InventoryTransaction>();
