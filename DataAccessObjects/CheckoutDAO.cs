@@ -39,6 +39,9 @@ public class CheckoutDAO
     /// </param>
     public ServiceResult CreateInvoice(CheckoutDto dto, int actingUserId, bool selfService = false)
     {
+        // 0. Tự động dọn dẹp các hóa đơn đã hết hạn (quá 30 phút chưa captcha hoặc quá 14 ngày cọc)
+        try { MasterInvoicePaymentDAO.Instance.ReleaseExpiredInvoices(); } catch { /* ignore */ }
+
         if ((dto.Cars == null || dto.Cars.Count == 0) &&
             (dto.PartOrderIds == null || dto.PartOrderIds.Count == 0) &&
             (dto.AppointmentIds == null || dto.AppointmentIds.Count == 0))
@@ -68,6 +71,7 @@ public class CheckoutDAO
                 Notes = dto.Notes,
                 CreatedAt = now,
                 CreatedUser = actingUserId,
+                ExpiredAt = now.AddMinutes(30), // Khóa tạm thời 30 phút để hoàn tất xác thực captcha lớp 1
                 TotalSubTotal = 0,
                 TotalAmount = 0
             };
@@ -83,14 +87,64 @@ public class CheckoutDAO
                 if (request == null) return Rollback(tx, $"Không tìm thấy yêu cầu mua xe #{line.PurchaseRequestId}.");
                 if (request.CustomerId != dto.CustomerId) return Rollback(tx, $"Yêu cầu mua #{line.PurchaseRequestId} không thuộc khách hàng này.");
                 if (request.Status is "Rejected" or "Completed") return Rollback(tx, $"Yêu cầu mua #{line.PurchaseRequestId} đã kết thúc.");
-                bool alreadyInvoiced = ctx.CarInvoices
-                    .Include(c => c.MasterInvoice)
-                    .Any(c => c.PurchaseRequestId == request.RequestId && c.MasterInvoice.InvoiceStatus != InvoiceStatuses.Cancelled);
-                if (alreadyInvoiced) return Rollback(tx, $"Yêu cầu mua #{line.PurchaseRequestId} đã có hóa đơn.");
 
                 var car = ctx.Cars.SingleOrDefault(c => c.CarId == request.CarId);
                 if (car == null) return Rollback(tx, "Không tìm thấy xe.");
-                if (car.Status is "Sold" or "Inactive") return Rollback(tx, $"Xe '{car.CarName}' không còn khả dụng.");
+                if (car.Status == "Inactive") return Rollback(tx, $"Xe '{car.CarName}' hiện ngưng kinh doanh.");
+
+                // Lấy tất cả các hóa đơn active khác đang chứa xe này
+                var existingCarInvoices = ctx.CarInvoices
+                    .Include(c => c.MasterInvoice)
+                    .Where(c => c.CarId == car.CarId &&
+                                c.MasterInvoice.InvoiceStatus != InvoiceStatuses.Cancelled &&
+                                c.MasterInvoiceId != master.MasterInvoiceId)
+                    .ToList();
+
+                // Rule 1: Nếu có hóa đơn cũ ĐÃ ĐƯỢC CONFIRM CAPTCHA 1 lần (đã cọc hoặc đã thanh toán) -> Báo lỗi không thể tạo mới
+                var confirmedInvoice = existingCarInvoices.FirstOrDefault(c =>
+                    c.MasterInvoice.IsDepositCaptchaUsed ||
+                    c.MasterInvoice.IsFinalCaptchaUsed ||
+                    c.MasterInvoice.PaymentStatus == PaymentStatuses.Deposited ||
+                    c.MasterInvoice.PaymentStatus == PaymentStatuses.Paid);
+
+                if (confirmedInvoice != null || car.Status == "Sold")
+                {
+                    string invNo = confirmedInvoice?.MasterInvoice.InvoiceNumber ?? "trước đó";
+                    return Rollback(tx, $"Xe '{car.CarName}' đã được xác thực đặt cọc hoặc mua đứt ở hóa đơn #{invNo} và không thể tạo thêm hóa đơn.");
+                }
+
+                // Rule 2: Các hóa đơn cũ CHƯA XÁC THỰC LỚP NÀO -> Cho phép đè lên, nhận hóa đơn mới nhất và disable hóa đơn cũ
+                var unconfirmedCarInvoices = existingCarInvoices.Where(c =>
+                    !c.MasterInvoice.IsDepositCaptchaUsed &&
+                    !c.MasterInvoice.IsFinalCaptchaUsed &&
+                    c.MasterInvoice.PaymentStatus == PaymentStatuses.Unpaid).ToList();
+
+                foreach (var oldCi in unconfirmedCarInvoices)
+                {
+                    var oldMaster = oldCi.MasterInvoice;
+                    oldMaster.InvoiceStatus = InvoiceStatuses.Cancelled;
+                    oldMaster.Notes = (string.IsNullOrEmpty(oldMaster.Notes) ? "" : oldMaster.Notes + " | ")
+                        + $"Vô hiệu hóa do bị thay thế bởi hóa đơn mới #{master.InvoiceNumber} ({now:dd/MM/yyyy HH:mm}).";
+                    oldMaster.UpdatedAt = now;
+
+                    // Nếu hóa đơn cũ bị hủy đã lỡ trừ tồn kho phụ tùng -> Hoàn lại tồn kho
+                    foreach (var pi in ctx.PartInvoices.Where(p => p.MasterInvoiceId == oldMaster.MasterInvoiceId).ToList())
+                    {
+                        var order = ctx.PartOrders.Include(o => o.PartOrderDetails).SingleOrDefault(o => o.OrderId == pi.PartOrderId);
+                        if (order != null)
+                        {
+                            foreach (var detail in order.PartOrderDetails)
+                            {
+                                var partItem = ctx.Parts.SingleOrDefault(p => p.PartId == detail.PartId);
+                                if (partItem != null)
+                                {
+                                    partItem.Quantity += detail.Quantity;
+                                    if (partItem.Status == "OutOfStock" && partItem.Quantity > 0) partItem.Status = "Available";
+                                }
+                            }
+                        }
+                    }
+                }
 
                 decimal carSub = car.Price + line.RegistrationFee + line.PlateFee + line.InsuranceFee;
                 totalSubTotal += carSub;
@@ -109,8 +163,8 @@ public class CheckoutDAO
                     CreatedUser = actingUserId
                 });
 
-                // Khách tự checkout: chưa giữ chỗ xe — chỉ giữ chỗ khi khách xác nhận cọc/mua đứt bằng captcha.
-                if (!selfService) car.Status = "Reserved";
+                // Khóa số lượng xe tạm thời (Reserved) 30 phút
+                car.Status = "Reserved";
                 request.Status = "Confirmed";
                 request.UpdatedAt = now;
                 request.UpdatedUser = actingUserId;

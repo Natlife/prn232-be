@@ -238,7 +238,7 @@ public class MasterInvoicePaymentDAO
     // Giải phóng cọc hết hạn (mọi module)
     // ---------------------------------------------------------------------
 
-    public int ReleaseExpiredDeposits()
+    public int ReleaseExpiredInvoices()
     {
         using var ctx = new CarShowroomContext();
         using var tx = ctx.Database.BeginTransaction();
@@ -246,25 +246,86 @@ public class MasterInvoicePaymentDAO
         int released = 0;
         try
         {
-            var expired = ctx.MasterInvoices.Where(m =>
+            // 1. Quá 30 phút chưa xác thực captcha 1 lớp nào
+            var expiredUnconfirmed = ctx.MasterInvoices.Where(m =>
+                !m.IsDepositCaptchaUsed &&
+                !m.IsFinalCaptchaUsed &&
+                m.PaymentStatus == PaymentStatuses.Unpaid &&
+                m.InvoiceStatus != InvoiceStatuses.Completed &&
+                m.InvoiceStatus != InvoiceStatuses.Cancelled &&
+                ((m.ExpiredAt != null && m.ExpiredAt < now) || m.CreatedAt.AddMinutes(30) < now)).ToList();
+
+            foreach (var master in expiredUnconfirmed)
+            {
+                master.InvoiceStatus = InvoiceStatuses.Cancelled;
+                master.Notes = (string.IsNullOrEmpty(master.Notes) ? "" : master.Notes + " | ")
+                    + $"Tự động hết hiệu lực do quá 30 phút chưa xác thực captcha ({now:dd/MM/yyyy HH:mm}).";
+                master.UpdatedAt = now;
+
+                // Hoàn lại xe nếu đang bị khóa Reserved
+                foreach (var ci in ctx.CarInvoices.Where(c => c.MasterInvoiceId == master.MasterInvoiceId).ToList())
+                {
+                    var car = ctx.Cars.SingleOrDefault(c => c.CarId == ci.CarId);
+                    if (car != null && car.Status == "Reserved") car.Status = "Available";
+                    if (ci.PurchaseRequestId.HasValue)
+                    {
+                        var req = ctx.PurchaseRequests.SingleOrDefault(r => r.RequestId == ci.PurchaseRequestId.Value);
+                        if (req != null && req.Status == "Confirmed") { req.Status = "Pending"; req.UpdatedAt = now; }
+                    }
+                }
+
+                // Hoàn lại số lượng phụ tùng vào kho nếu đã từng trừ kho
+                foreach (var pi in ctx.PartInvoices.Where(p => p.MasterInvoiceId == master.MasterInvoiceId).ToList())
+                {
+                    var order = ctx.PartOrders.Include(o => o.PartOrderDetails).SingleOrDefault(o => o.OrderId == pi.PartOrderId);
+                    if (order != null)
+                    {
+                        foreach (var detail in order.PartOrderDetails)
+                        {
+                            var part = ctx.Parts.SingleOrDefault(p => p.PartId == detail.PartId);
+                            if (part != null)
+                            {
+                                part.Quantity += detail.Quantity;
+                                if (part.Status == "OutOfStock" && part.Quantity > 0) part.Status = "Available";
+
+                                ctx.InventoryTransactions.Add(new InventoryTransaction
+                                {
+                                    PartId = part.PartId,
+                                    TransactionType = InventoryTransactionTypes.Import,
+                                    Quantity = detail.Quantity,
+                                    ReferenceType = InventoryReferenceTypes.PartOrder,
+                                    ReferenceId = order.OrderId,
+                                    StaffId = master.StaffId ?? master.CustomerId,
+                                    Notes = $"Hoàn tồn kho do hóa đơn tổng #{master.MasterInvoiceId} hết hạn 30 phút chưa xác thực",
+                                    TransactionDate = now,
+                                    CreatedAt = now,
+                                    CreatedUser = master.CustomerId
+                                });
+                            }
+                        }
+                        if (order.Status == "Confirmed") order.Status = "Cancelled";
+                    }
+                }
+
+                released++;
+            }
+
+            // 2. Hóa đơn cọc quá hạn 2 tuần (14 ngày)
+            var expiredDeposits = ctx.MasterInvoices.Where(m =>
                 m.PurchaseType == "Deposit" &&
+                m.IsDepositCaptchaUsed &&
                 m.DepositExpiresAt != null && m.DepositExpiresAt < now &&
                 m.PaymentStatus != PaymentStatuses.Paid &&
                 m.InvoiceStatus != InvoiceStatuses.Completed &&
                 m.InvoiceStatus != InvoiceStatuses.Cancelled).ToList();
 
-            foreach (var master in expired)
+            foreach (var master in expiredDeposits)
             {
                 master.InvoiceStatus = InvoiceStatuses.Cancelled;
-                // Quá 2 tuần: hủy đơn, KHÔNG hoàn cọc (khách mất tiền đặt cọc), giải phóng xe.
-                var forfeit = master.PaymentStatus == PaymentStatuses.Deposited;
                 master.Notes = (string.IsNullOrEmpty(master.Notes) ? "" : master.Notes + " | ")
-                    + (forfeit
-                        ? $"Tự động hủy do quá hạn giữ cọc 2 tuần ({now:dd/MM/yyyy}); khách mất tiền đặt cọc."
-                        : $"Tự động hủy do quá hạn xác thực ({now:dd/MM/yyyy}).");
+                    + $"Tự động hủy do quá hạn giữ cọc 2 tuần ({now:dd/MM/yyyy}); khách mất tiền đặt cọc.";
                 master.UpdatedAt = now;
 
-                // Trả xe về Available.
                 foreach (var ci in ctx.CarInvoices.Where(c => c.MasterInvoiceId == master.MasterInvoiceId).ToList())
                 {
                     var car = ctx.Cars.SingleOrDefault(c => c.CarId == ci.CarId);
@@ -288,6 +349,8 @@ public class MasterInvoicePaymentDAO
             throw;
         }
     }
+
+    public int ReleaseExpiredDeposits() => ReleaseExpiredInvoices();
 
     // ---------------------------------------------------------------------
     // Truy vấn hóa đơn tổng (kèm dòng chi tiết mọi module)
@@ -333,6 +396,10 @@ public class MasterInvoicePaymentDAO
 
     private static MasterInvoiceViewDto Map(CarShowroomContext ctx, MasterInvoice m, string customerName, bool includeCaptcha)
     {
+        var now = DateTime.Now;
+        var expAt = m.ExpiredAt ?? m.CreatedAt.AddMinutes(30);
+        int remSec = (int)Math.Max(0, (expAt - now).TotalSeconds);
+
         var dto = new MasterInvoiceViewDto
         {
             MasterInvoiceId = m.MasterInvoiceId,
@@ -351,6 +418,8 @@ public class MasterInvoicePaymentDAO
             DepositAmount = m.DepositAmount,
             DepositPaidAmount = m.DepositPaidAmount,
             DepositExpiresAt = m.DepositExpiresAt,
+            ExpiredAt = expAt,
+            RemainingSeconds = remSec,
             IsDepositCaptchaUsed = m.IsDepositCaptchaUsed,
             IsFinalCaptchaUsed = m.IsFinalCaptchaUsed,
             DepositCaptchaCode = includeCaptcha ? m.DepositCaptchaCode : null,

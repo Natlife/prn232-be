@@ -35,22 +35,36 @@ public class CarSalesDAO
     {
         using var ctx = new CarShowroomContext();
 
+        // 0. Dọn các hóa đơn hết hạn (quá 30 phút chưa captcha hoặc quá 14 ngày cọc)
+        try { MasterInvoicePaymentDAO.Instance.ReleaseExpiredInvoices(); } catch { /* ignore */ }
+
         var car = ctx.Cars.SingleOrDefault(c => c.CarId == dto.CarId);
         if (car == null) return ServiceResult.Fail("Không tìm thấy xe.");
         if (car.Status is "Sold" or "Inactive") return ServiceResult.Fail("Xe này hiện không còn được bán.");
 
-        var existing = ctx.PurchaseRequests
-            .Where(p => p.CarId == dto.CarId && p.CustomerId == customerId &&
-                        (p.Status == "Pending" || p.Status == "Confirmed"))
+        // Kiểm tra xem xe này đã có hóa đơn nào ĐÃ CONFIRM CAPTCHA (đã cọc hoặc đã mua đứt) hay chưa
+        var confirmedCarInvoice = ctx.CarInvoices
+            .Include(c => c.MasterInvoice)
+            .FirstOrDefault(c => c.CarId == dto.CarId &&
+                                 c.MasterInvoice.InvoiceStatus != InvoiceStatuses.Cancelled &&
+                                 (c.MasterInvoice.IsDepositCaptchaUsed ||
+                                  c.MasterInvoice.IsFinalCaptchaUsed ||
+                                  c.MasterInvoice.PaymentStatus == PaymentStatuses.Deposited ||
+                                  c.MasterInvoice.PaymentStatus == PaymentStatuses.Paid));
+
+        if (confirmedCarInvoice != null || car.Status == "Sold")
+        {
+            return ServiceResult.Fail($"Xe '{car.CarName}' đã được xác thực đặt cọc hoặc mua đứt ở hóa đơn #{confirmedCarInvoice?.MasterInvoice.InvoiceNumber}. Vui lòng vào trang 'Hóa đơn của tôi'.");
+        }
+
+        // Nếu xe chưa được xác thực captcha lớp nào -> cho phép dùng lại yêu cầu Pending hoặc tạo yêu cầu mới
+        var existingPending = ctx.PurchaseRequests
+            .Where(p => p.CarId == dto.CarId && p.CustomerId == customerId && p.Status == "Pending")
             .OrderByDescending(p => p.RequestId)
             .FirstOrDefault();
-        if (existing != null)
+        if (existingPending != null)
         {
-            // Đã có hóa đơn đang chờ thanh toán -> chặn để tránh mua trùng.
-            if (existing.Status == "Confirmed")
-                return ServiceResult.Fail("Xe này đã có hóa đơn đang chờ thanh toán. Vui lòng vào trang 'Hóa đơn của tôi'.");
-            // Yêu cầu còn Pending (chưa lập hóa đơn) -> dùng lại (idempotent) để checkout thử lại được.
-            return ServiceResult.Ok("Dùng lại yêu cầu mua đang chờ cho xe này.", new { requestId = existing.RequestId });
+            return ServiceResult.Ok("Dùng lại yêu cầu mua đang chờ cho xe này.", new { requestId = existingPending.RequestId });
         }
 
         var now = DateTime.Now;
