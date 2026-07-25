@@ -32,8 +32,11 @@ namespace DataAccessObjects
         {
             using var context = new CarShowroomContext();
             return context.MaintenanceAppointments
-                .Include(a => a.Package)
                 .Include(a => a.Customer)
+                .Include(a => a.CustomerCar).ThenInclude(cc => cc.Brand)
+                .Include(a => a.AppointmentDetails).ThenInclude(d => d.Package).ThenInclude(p => p.PackageServices).ThenInclude(ps => ps.Service)
+                .Include(a => a.AppointmentDetails).ThenInclude(d => d.Service)
+                .Include(a => a.ConsumedParts).ThenInclude(cp => cp.Part)
                 .ToList();
         }
 
@@ -41,7 +44,11 @@ namespace DataAccessObjects
         {
             using var context = new CarShowroomContext();
             return context.MaintenanceAppointments
-                .Include(a => a.Package)
+                .Include(a => a.Customer)
+                .Include(a => a.CustomerCar).ThenInclude(cc => cc.Brand)
+                .Include(a => a.AppointmentDetails).ThenInclude(d => d.Package).ThenInclude(p => p.PackageServices).ThenInclude(ps => ps.Service)
+                .Include(a => a.AppointmentDetails).ThenInclude(d => d.Service)
+                .Include(a => a.ConsumedParts).ThenInclude(cp => cp.Part)
                 .Where(a => a.CustomerId == customerId)
                 .ToList();
         }
@@ -50,8 +57,11 @@ namespace DataAccessObjects
         {
             using var context = new CarShowroomContext();
             return context.MaintenanceAppointments
-                .Include(a => a.Package)
                 .Include(a => a.Customer)
+                .Include(a => a.CustomerCar).ThenInclude(cc => cc.Brand)
+                .Include(a => a.AppointmentDetails).ThenInclude(d => d.Package).ThenInclude(p => p.PackageServices).ThenInclude(ps => ps.Service)
+                .Include(a => a.AppointmentDetails).ThenInclude(d => d.Service)
+                .Include(a => a.ConsumedParts).ThenInclude(cp => cp.Part)
                 .SingleOrDefault(a => a.AppointmentId == appointmentId);
         }
 
@@ -60,6 +70,47 @@ namespace DataAccessObjects
             using var context = new CarShowroomContext();
             context.MaintenanceAppointments.Add(appointment);
             context.SaveChanges();
+        }
+
+        /// <summary>
+        /// Tạo appointment kèm AppointmentDetails và các Parts mua kèm trong cùng một transaction
+        /// </summary>
+        public MaintenanceAppointment CreateAppointmentWithDetails(MaintenanceAppointment appointment, List<AppointmentDetail> details, List<AppointmentConsumedPart>? parts = null)
+        {
+            using var context = new CarShowroomContext();
+            using var transaction = context.Database.BeginTransaction();
+            try
+            {
+                context.MaintenanceAppointments.Add(appointment);
+                context.SaveChanges();
+
+                foreach (var detail in details)
+                {
+                    detail.AppointmentId = appointment.AppointmentId;
+                    context.AppointmentDetails.Add(detail);
+                }
+                
+                if (parts != null && parts.Any())
+                {
+                    foreach (var part in parts)
+                    {
+                        part.AppointmentId = appointment.AppointmentId;
+                        part.AppointmentDetailId = null; // These are unified cart parts
+                        part.IsIncurred = false; // Not incurred, they are standard parts bought alongside
+                        context.AppointmentConsumedParts.Add(part);
+                    }
+                }
+                
+                context.SaveChanges();
+
+                transaction.Commit();
+                return appointment;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public void UpdateAppointment(MaintenanceAppointment appointment)

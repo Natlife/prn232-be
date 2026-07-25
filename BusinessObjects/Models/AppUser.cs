@@ -33,5 +33,7 @@ public partial class AppUser
 
     public virtual ICollection<PurchaseRequest> PurchaseRequests { get; set; } = new List<PurchaseRequest>();
 
+    public virtual ICollection<CustomerCar> CustomerCars { get; set; } = new List<CustomerCar>();
+
     public virtual AppRole Role { get; set; } = null!;
 }

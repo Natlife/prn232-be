@@ -5,11 +5,11 @@ namespace Services
 {
     public interface IMaintenancePackageService
     {
-        IEnumerable<MaintenancePackage> GetAllPackages();
-        IEnumerable<MaintenancePackage> GetAvailablePackages();
-        MaintenancePackage GetPackageById(int packageId);
-        void AddPackage(MaintenancePackage package);
-        void UpdatePackage(MaintenancePackage package);
+        IEnumerable<BusinessObjects.DTOs.MaintenancePackageDTO> GetAllPackages();
+        IEnumerable<BusinessObjects.DTOs.MaintenancePackageDTO> GetAvailablePackages();
+        BusinessObjects.DTOs.MaintenancePackageDTO GetPackageById(int packageId);
+        void AddPackage(BusinessObjects.DTOs.MaintenancePackageDTO packageDto);
+        void UpdatePackage(BusinessObjects.DTOs.MaintenancePackageDTO packageDto);
         void DeletePackage(int packageId);
     }
 }
