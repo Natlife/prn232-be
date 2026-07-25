@@ -57,11 +57,38 @@ public class ChatProxyService : IChatProxyService
                 request,
                 _jsonOptions);
 
-            response.EnsureSuccessStatusCode();
+            var raw = await response.Content.ReadAsStringAsync();
 
-            var result = await response.Content.ReadFromJsonAsync<ChatResponseDto>(_jsonOptions);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Python /chat returned {Status}: {Body}", (int)response.StatusCode, raw);
+                return BuildFallbackReply(request.SessionId,
+                    "Dịch vụ tư vấn AI đang bận. Vui lòng thử lại sau giây lát.");
+            }
 
-            return result ?? BuildFallbackReply(request.SessionId, "Không nhận được phản hồi từ dịch vụ AI.");
+            // 1) Thử parse đầy đủ theo DTO
+            try
+            {
+                var result = JsonSerializer.Deserialize<ChatResponseDto>(raw, _jsonOptions);
+                if (result != null && !string.IsNullOrWhiteSpace(result.Reply))
+                    return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize Python chat response. Raw={Raw}", raw);
+            }
+
+            // 2) Cứu vãn: ít nhất lấy 'reply' để khách vẫn thấy nội dung tư vấn
+            try
+            {
+                using var doc = JsonDocument.Parse(raw);
+                if (doc.RootElement.TryGetProperty("reply", out var replyEl))
+                    return BuildFallbackReply(request.SessionId,
+                        replyEl.GetString() ?? "Xin lỗi, tôi chưa lấy được nội dung phản hồi.");
+            }
+            catch { /* raw không phải JSON hợp lệ */ }
+
+            return BuildFallbackReply(request.SessionId, "Không nhận được phản hồi hợp lệ từ dịch vụ AI.");
         }
         catch (HttpRequestException ex)
         {

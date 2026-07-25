@@ -64,7 +64,11 @@ namespace CarSalesManagementSystemAPI
             builder.Services.AddScoped<IMasterInvoicePaymentService, MasterInvoicePaymentService>();
 
             // Chat proxy — delegates to Python RAG service (chatbot chỉ tư vấn, không tạo đơn)
-            builder.Services.AddHttpClient<IChatProxyService, ChatProxyService>();
+            // Timeout rộng hơn mặc định để phản hồi RAG (nhiều bước tool) không bị cắt giữa chừng.
+            builder.Services.AddHttpClient<IChatProxyService, ChatProxyService>(c =>
+            {
+                c.Timeout = TimeSpan.FromSeconds(90);
+            });
 
             var modelBuilder = new ODataConventionModelBuilder();
             var cars = modelBuilder.EntitySet<BusinessObjects.Models.Car>("Cars");
