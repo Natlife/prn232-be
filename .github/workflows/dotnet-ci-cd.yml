@@ -1,0 +1,30 @@
+name: .NET CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master", "merge/v3" ]
+  pull_request:
+    branches: [ "main", "master", "merge/v3" ]
+
+jobs:
+  build-and-test:
+    name: Build & Run Unit Tests (.NET Backend)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8.0 SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore CarSalesManagementSystem.sln
+
+    - name: Build Solution
+      run: dotnet build CarSalesManagementSystem.sln --configuration Release --no-restore
+
+    - name: Run xUnit Unit Tests (3 Modules: Cars, Spare Parts, Services)
+      run: dotnet test CarSalesManagementSystem.Tests/CarSalesManagementSystem.Tests.csproj --configuration Release --no-build --verbosity normal
